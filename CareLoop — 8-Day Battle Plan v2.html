@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CareLoop — 8-Day Battle Plan v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #F7F8FA;
+  --white: #ffffff;
+  --ink: #0D1117;
+  --ink2: #374151;
+  --muted: #9CA3AF;
+  --rule: #E5E7EB;
+  --blue: #0EA5E9;
+  --blue-dim: #EFF8FF;
+  --blue-border: #BAE6FD;
+  --purple: #7C3AED;
+  --purple-dim: #F5F3FF;
+  --purple-border: #DDD6FE;
+  --green: #059669;
+  --green-dim: #ECFDF5;
+  --green-border: #A7F3D0;
+  --amber: #D97706;
+  --amber-dim: #FFFBEB;
+  --amber-border: #FDE68A;
+  --red: #DC2626;
+  --red-dim: #FEF2F2;
+  --red-border: #FCA5A5;
+  --orange: #EA580C;
+  --orange-dim: #FFF7ED;
+  --orange-border: #FED7AA;
+  --r: 8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+
+/* NAV */
+.topbar{position:sticky;top:0;z-index:99;background:var(--ink);display:flex;align-items:center;justify-content:space-between;padding:0.75rem 2.5rem;gap:1rem;flex-wrap:wrap;}
+.tb-brand{font-size:1rem;font-weight:600;letter-spacing:-0.02em;color:#fff;}
+.tb-brand span{color:var(--blue);}
+.tb-nav{display:flex;gap:0.25rem;flex-wrap:wrap;}
+.tb-nav a{color:rgba(255,255,255,0.55);font-size:0.75rem;padding:0.3rem 0.75rem;border-radius:20px;text-decoration:none;transition:color 0.2s,background 0.2s;}
+.tb-nav a:hover{color:#fff;background:rgba(255,255,255,0.08);}
+.tb-badge{font-size:0.7rem;font-weight:500;background:var(--red);color:#fff;padding:0.25rem 0.65rem;border-radius:20px;}
+
+/* HERO */
+.hero{padding:2.5rem 2.5rem 2rem;border-bottom:1px solid var(--rule);background:var(--white);}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.hero-h{font-size:2rem;font-weight:600;letter-spacing:-0.04em;line-height:1.1;color:var(--ink);}
+.hero-h span{color:var(--blue);}
+.hero-sub{font-size:0.88rem;color:var(--ink2);margin-top:0.4rem;font-weight:300;}
+.pills{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.pill{font-size:0.7rem;font-weight:500;padding:0.3rem 0.8rem;border-radius:20px;border:1px solid;white-space:nowrap;}
+.p-red{background:var(--red-dim);color:var(--red);border-color:var(--red-border);}
+.p-blue{background:var(--blue-dim);color:var(--blue);border-color:var(--blue-border);}
+.p-purple{background:var(--purple-dim);color:var(--purple);border-color:var(--purple-border);}
+.p-green{background:var(--green-dim);color:var(--green);border-color:var(--green-border);}
+.p-amber{background:var(--amber-dim);color:var(--amber);border-color:var(--amber-border);}
+
+/* COUNTER STRIP */
+.counter-strip{display:grid;grid-template-columns:repeat(8,1fr);gap:0;border-top:1px solid var(--rule);}
+.c-day{padding:0.75rem 0.5rem;text-align:center;border-right:1px solid var(--rule);cursor:pointer;transition:background 0.15s;}
+.c-day:last-child{border-right:none;}
+.c-day:hover{background:var(--paper);}
+.c-day-num{font-size:1.1rem;font-weight:600;letter-spacing:-0.03em;color:var(--ink);display:block;}
+.c-day-label{font-size:0.65rem;color:var(--muted);display:block;margin-bottom:0.25rem;}
+.c-day-bar{height:3px;border-radius:2px;background:var(--rule);overflow:hidden;margin:0 auto;width:80%;}
+.c-day-fill{height:100%;border-radius:2px;}
+.c-day-tag{font-size:0.62rem;color:var(--muted);margin-top:3px;display:block;font-style:italic;}
+
+/* LEGEND */
+.legend{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;padding:0.65rem 2.5rem;border-bottom:1px solid var(--rule);background:var(--white);}
+.leg{display:flex;align-items:center;gap:0.4rem;font-size:0.72rem;color:var(--ink2);}
+.ld{width:9px;height:9px;border-radius:2px;}
+
+/* MAIN */
+.main{padding:2rem 2.5rem 5rem;}
+
+/* PHASE */
+.phase{margin-bottom:3rem;}
+.phase-hd{display:flex;align-items:center;gap:0.75rem;padding:0.7rem 1rem;background:var(--ink);border-radius:var(--r);margin-bottom:1.25rem;flex-wrap:wrap;}
+.ph-num{font-size:0.65rem;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.4);font-weight:500;}
+.ph-name{font-size:0.9rem;font-weight:600;color:#fff;letter-spacing:-0.01em;}
+.ph-days{font-size:0.7rem;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.4);}
+.ph-goal{margin-left:auto;font-size:0.72rem;color:rgba(255,255,255,0.6);font-style:italic;}
+
+/* DAY GRID */
+.day-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+@media(min-width:900px){.day-row{grid-template-columns:repeat(4,1fr);}}
+
+/* DAY CARD */
+.day-card{background:var(--white);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;opacity:0;transform:translateY(8px);transition:opacity 0.4s ease,transform 0.4s ease;}
+.day-card.vis{opacity:1;transform:translateY(0);}
+.day-card-hd{padding:0.65rem 0.9rem;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;}
+.dc-day{font-size:0.7rem;font-family:'DM Mono',monospace;font-weight:500;color:var(--muted);}
+.dc-theme{font-size:0.78rem;font-weight:600;color:var(--ink);}
+.dc-bar{width:28px;height:3px;border-radius:2px;}
+.day-card-body{padding:0.75rem 0.9rem;display:flex;flex-direction:column;gap:0.6rem;}
+
+/* TASK */
+.task{border-radius:6px;padding:0.6rem 0.75rem;border-left:3px solid;}
+.task-head{display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;margin-bottom:0.3rem;}
+.task-name{font-size:0.8rem;font-weight:600;color:var(--ink);line-height:1.3;}
+.task-badge{font-size:0.58rem;font-family:'DM Mono',monospace;font-weight:500;padding:2px 6px;border-radius:3px;white-space:nowrap;flex-shrink:0;margin-top:1px;}
+.task-how{font-size:0.73rem;color:var(--ink2);line-height:1.5;margin-bottom:0.3rem;}
+.task-impl{font-size:0.7rem;color:var(--ink2);line-height:1.5;}
+.task-impl strong{color:var(--ink);font-weight:500;}
+
+/* task colors */
+.t-build{background:#F0F9FF;border-color:var(--blue);}
+.t-build .task-badge{background:var(--blue-dim);color:var(--blue);}
+.t-ai{background:var(--purple-dim);border-color:var(--purple);}
+.t-ai .task-badge{background:#EDE9FE;color:var(--purple);}
+.t-demo{background:var(--green-dim);border-color:var(--green);}
+.t-demo .task-badge{background:#D1FAE5;color:var(--green);}
+.t-ui{background:var(--orange-dim);border-color:var(--orange);}
+.t-ui .task-badge{background:#FFEDD5;color:var(--orange);}
+.t-infra{background:#F0FDF4;border-color:#22C55E;}
+.t-infra .task-badge{background:#DCFCE7;color:#15803D;}
+.t-pitch{background:var(--red-dim);border-color:var(--red);}
+.t-pitch .task-badge{background:#FFE4E6;color:var(--red);}
+.t-buffer{background:var(--amber-dim);border-color:var(--amber);}
+.t-buffer .task-badge{background:#FEF3C7;color:var(--amber);}
+
+/* NOTE BOX */
+.note-box{border-radius:6px;padding:0.55rem 0.75rem;font-size:0.7rem;line-height:1.5;border:1px dashed;}
+.note-box strong{display:block;font-size:0.65rem;font-weight:600;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.04em;}
+.nb-tip{background:#FFFBF0;border-color:#F59E0B;color:#92400E;}
+.nb-tip strong{color:#B45309;}
+.nb-warn{background:var(--red-dim);border-color:var(--red-border);color:#991B1B;}
+.nb-warn strong{color:var(--red);}
+.nb-win{background:var(--green-dim);border-color:var(--green-border);color:#065F46;}
+.nb-win strong{color:var(--green);}
+
+/* SECTION TITLES */
+.sec-title{font-size:1rem;font-weight:600;letter-spacing:-0.02em;color:var(--ink);margin-bottom:1rem;padding-bottom:0.6rem;border-bottom:2px solid var(--ink);display:flex;align-items:center;gap:0.75rem;}
+.sec-title span{font-size:0.72rem;font-weight:400;color:var(--muted);font-family:'DM Mono',monospace;}
+
+/* FEATURE TABLE */
+.feat-table{width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:2rem;}
+.feat-table th{text-align:left;padding:0.6rem 0.85rem;background:var(--ink);color:#fff;font-weight:500;font-size:0.72rem;}
+.feat-table th:first-child{border-radius:6px 0 0 0;}
+.feat-table th:last-child{border-radius:0 6px 0 0;}
+.feat-table td{padding:0.65rem 0.85rem;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink2);}
+.feat-table tr:nth-child(even) td{background:#FAFAFA;}
+.feat-table td:first-child{color:var(--ink);font-weight:500;}
+.feat-tag{font-size:0.62rem;font-weight:500;padding:2px 7px;border-radius:20px;display:inline-block;white-space:nowrap;}
+.ft-wow{background:var(--purple-dim);color:var(--purple);}
+.ft-core{background:var(--blue-dim);color:var(--blue);}
+.ft-demo{background:var(--green-dim);color:var(--green);}
+.impl-steps{font-size:0.71rem;color:var(--ink2);line-height:1.6;}
+.impl-steps li{margin-bottom:2px;}
+.code-hint{font-family:'DM Mono',monospace;font-size:0.67rem;background:#F3F4F6;padding:1px 5px;border-radius:3px;color:#374151;}
+
+/* RISK TABLE */
+.risk-table{width:100%;border-collapse:collapse;font-size:0.76rem;}
+.risk-table th{text-align:left;padding:0.6rem 0.85rem;background:var(--ink);color:#fff;font-weight:500;font-size:0.72rem;}
+.risk-table th:first-child{border-radius:6px 0 0 0;}
+.risk-table th:last-child{border-radius:0 6px 0 0;}
+.risk-table td{padding:0.65rem 0.85rem;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink2);}
+.risk-table tr:nth-child(even) td{background:#FAFAFA;}
+.rb{font-size:0.62rem;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.rb-h{background:var(--red-dim);color:var(--red);}
+.rb-m{background:var(--amber-dim);color:var(--amber);}
+.rb-l{background:var(--green-dim);color:var(--green);}
+
+/* WIN GRID */
+.win-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem;}
+@media(max-width:700px){.win-grid{grid-template-columns:1fr;}}
+.win-card{border-radius:var(--r);padding:1rem 1.1rem;border:1px solid;}
+.win-card h4{font-size:0.85rem;font-weight:600;margin-bottom:0.6rem;}
+.win-card li{font-size:0.74rem;line-height:1.65;color:var(--ink2);margin-left:1rem;}
+.wc-b{background:var(--blue-dim);border-color:var(--blue-border);}
+.wc-b h4{color:#0369A1;}
+.wc-p{background:var(--purple-dim);border-color:var(--purple-border);}
+.wc-p h4{color:var(--purple);}
+.wc-g{background:var(--green-dim);border-color:var(--green-border);}
+.wc-g h4{color:var(--green);}
+
+/* STACK GRID */
+.stack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:2rem;}
+@media(max-width:700px){.stack-grid{grid-template-columns:1fr 1fr;}}
+.stack-card{background:var(--white);border:1px solid var(--rule);border-radius:var(--r);padding:0.8rem 1rem;}
+.sc-layer{font-size:0.62rem;font-family:'DM Mono',monospace;color:var(--blue);font-weight:500;margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.04em;}
+.sc-tech{font-size:0.82rem;font-weight:600;color:var(--ink);margin-bottom:0.2rem;}
+.sc-note{font-size:0.7rem;color:var(--ink2);}
+.sc-cmd{font-size:0.65rem;font-family:'DM Mono',monospace;background:#F3F4F6;padding:2px 6px;border-radius:3px;color:var(--ink2);margin-top:0.35rem;display:block;}
+
+/* FOOTER */
+footer{border-top:2px solid var(--ink);padding:1.25rem 2.5rem;display:flex;justify-content:space-between;align-items:center;font-size:0.73rem;color:var(--muted);flex-wrap:wrap;gap:0.5rem;background:var(--white);}
+.fb{color:var(--ink);font-weight:600;}
+.fb span{color:var(--blue);}
+
+@media(max-width:700px){
+  .topbar,.hero,.legend,.main,footer{padding-left:1.25rem;padding-right:1.25rem;}
+  .hero-h{font-size:1.5rem;}
+  .counter-strip{grid-template-columns:repeat(4,1fr);}
+  .stack-grid{grid-template-columns:1fr;}
+}
+@media(prefers-reduced-motion:reduce){
+  .day-card{transition:none;opacity:1;transform:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-brand">Care<span>Loop</span> — 8-Day Battle Plan</div>
+  <nav class="tb-nav">
+    <a href="#phase1">Day 1–2</a>
+    <a href="#phase2">Day 3–4</a>
+    <a href="#phase3">Day 5–6</a>
+    <a href="#phase4">Day 7–8</a>
+    <a href="#features">Features</a>
+    <a href="#stack">Stack</a>
+    <a href="#risks">Risks</a>
+    <a href="#win">Win</a>
+  </nav>
+  <span class="tb-badge">8 days to win</span>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-top">
+    <div>
+      <div class="hero-h">Care<span>Loop</span> — Complete Battle Plan</div>
+      <div class="hero-sub">Every feature. How to build it. When to ship it. How to demo it. VVCE Hackathon 2026 · HLS006</div>
+    </div>
+    <div class="pills">
+      <span class="pill p-red">8 days</span>
+      <span class="pill p-blue">12 features</span>
+      <span class="pill p-purple">AI agent core</span>
+      <span class="pill p-green">Demo-first</span>
+      <span class="pill p-amber">9.5/10 win odds</span>
+    </div>
+  </div>
+  <div class="counter-strip">
+    <div class="c-day"><span class="c-day-label">Mon</span><span class="c-day-num">1</span><div class="c-day-bar"><div class="c-day-fill" style="width:100%;background:var(--blue);"></div></div><span class="c-day-tag">Foundation</span></div>
+    <div class="c-day"><span class="c-day-label">Tue</span><span class="c-day-num">2</span><div class="c-day-bar"><div class="c-day-fill" style="width:100%;background:var(--blue);"></div></div><span class="c-day-tag">DB + State</span></div>
+    <div class="c-day"><span class="c-day-label">Wed</span><span class="c-day-num">3</span><div class="c-day-bar"><div class="c-day-fill" style="width:100%;background:var(--purple);"></div></div><span class="c-day-tag">Agent core</span></div>
+    <div class="c-day"><span class="c-day-label">Thu</span><span class="c-day-num">4</span><div class="c-day-bar"><div class="c-day-fill" style="width:100%;background:var(--purple);"></div></div><span class="c-day-tag">Comms + gaps</span></div>
+    <div class="c-day"><span class="c-day-label">Fri</span><span class="c-day-num">5</span><div class="c-day-bar"><div class="c-day-fill" style="width:100%;background:var(--green);"></div></div><span class="c-day-tag">Demo scenario</span></div>
+    <div class="c-day"><span class="c-day-label">Sat</span><span class="c-day-num">6</span><div class="c-day-bar"><div class="c-day-fill" style="width:100%;background:var(--green);"></div></div><span class="c-day-tag">Polish + Deploy</span></div>
+    <div class="c-day"><span class="c-day-label">Sun</span><span class="c-day-num">7</span><div class="c-day-bar"><div class="c-day-fill" style="width:100%;background:var(--red);"></div></div><span class="c-day-tag">Pitch + Rehearse</span></div>
+    <div class="c-day"><span class="c-day-label">Mon</span><span class="c-day-num">8</span><div class="c-day-bar"><div class="c-day-fill" style="width:100%;background:var(--red);"></div></div><span class="c-day-tag">Submit + Win</span></div>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="leg"><span class="ld" style="background:#BAE6FD;border:1px solid var(--blue)"></span>Core build</div>
+  <div class="leg"><span class="ld" style="background:#DDD6FE;border:1px solid var(--purple)"></span>AI / NLP</div>
+  <div class="leg"><span class="ld" style="background:#A7F3D0;border:1px solid var(--green)"></span>Demo</div>
+  <div class="leg"><span class="ld" style="background:#FED7AA;border:1px solid var(--orange)"></span>UI / Design</div>
+  <div class="leg"><span class="ld" style="background:#86EFAC;border:1px solid #22C55E"></span>Infra</div>
+  <div class="leg"><span class="ld" style="background:#FCA5A5;border:1px solid var(--red)"></span>Pitch</div>
+  <div class="leg"><span class="ld" style="background:#FDE68A;border:1px solid var(--amber)"></span>Buffer / QA</div>
+</div>
+
+<div class="main">
+
+<!-- ═══════════════════════════════════════════
+     PHASE 1 — FOUNDATION
+═══════════════════════════════════════════ -->
+<div class="phase" id="phase1">
+  <div class="phase-hd">
+    <span class="ph-num">PHASE 01</span>
+    <span class="ph-name">Foundation — Scaffold, NLP, DB, State Machine</span>
+    <span class="ph-days">Days 1–2</span>
+    <span class="ph-goal">Everything talking to everything before Day 3</span>
+  </div>
+
+  <div class="day-row">
+
+    <!-- DAY 1 -->
+    <div class="day-card" data-delay="0">
+      <div class="day-card-hd">
+        <div><div class="dc-day">DAY 1 — Monday</div><div class="dc-theme">Project scaffold + NLP live</div></div>
+        <div class="dc-bar" style="background:var(--blue);"></div>
+      </div>
+      <div class="day-card-body">
+
+        <div class="task t-infra">
+          <div class="task-head"><span class="task-name">Project scaffold</span><span class="task-badge">INFRA</span></div>
+          <div class="task-how">Init all three repos. Get them talking before writing any feature code.</div>
+          <div class="task-impl"><strong>How:</strong> <span class="code-hint">npx create-react-app careloop-ui</span>, <span class="code-hint">npm init + express</span> for Node backend, <span class="code-hint">fastapi + uvicorn</span> for Python NLP. Connect via .env. Push to GitHub immediately.</div>
+        </div>
+
+        <div class="task t-infra">
+          <div class="task-head"><span class="task-name">Supabase + PostgreSQL live</span><span class="task-badge">INFRA</span></div>
+          <div class="task-how">Create 4 tables: patients, care_journeys, care_actions, audit_log. Get connection string in .env.</div>
+          <div class="task-impl"><strong>Tables:</strong> care_actions needs columns — id, journey_id, type, status, confidence, owner, deadline, depends_on[], created_at. audit_log needs — action_id, from_state, to_state, actor, timestamp, note.</div>
+        </div>
+
+        <div class="task t-ai">
+          <div class="task-head"><span class="task-name">NLP extraction endpoint</span><span class="task-badge">AI · WOW</span></div>
+          <div class="task-how">POST /extract takes raw doctor note. Returns JSON array of care actions. This is the backbone of everything.</div>
+          <div class="task-impl"><strong>How:</strong> Call Claude API with a system prompt that says "Extract all medical orders from this note. Return JSON array: [{action, type, confidence, dependencies}]. type is one of: test | referral | medication | followup. confidence is 0–1." Parse and store.</div>
+        </div>
+
+        <div class="task t-ai">
+          <div class="task-head"><span class="task-name">Confidence classification</span><span class="task-badge">AI · WOW</span></div>
+          <div class="task-how">Tag each action: Explicit (>0.85 → execute), Conditional (0.5–0.85 → flag), Ambiguous (<0.5 → hold for human).</div>
+          <div class="task-impl"><strong>How:</strong> Add classification logic in Python after API response. Include phrasing signals in prompt — "order ECG" = Explicit, "consider cardiology" = Conditional.</div>
+        </div>
+
+        <div class="note-box nb-tip">
+          <strong>⚡ Day 1 advice</strong>
+          Don't build UI today. Just get the NLP call returning data in your terminal. If /extract returns a clean JSON array by end of Day 1, you're on track. Everything else is downstream of this call.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DAY 2 -->
+    <div class="day-card" data-delay="80">
+      <div class="day-card-hd">
+        <div><div class="dc-day">DAY 2 — Tuesday</div><div class="dc-theme">State machine + dependency graph + mock APIs</div></div>
+        <div class="dc-bar" style="background:var(--blue);"></div>
+      </div>
+      <div class="day-card-body">
+
+        <div class="task t-build">
+          <div class="task-head"><span class="task-name">Care action state machine</span><span class="task-badge">CORE</span></div>
+          <div class="task-how">Every action lives in one of 10 states. Transitions are the only way to move between them.</div>
+          <div class="task-impl"><strong>States:</strong> CREATED → VALIDATED → ASSIGNED → SCHEDULED → IN_PROGRESS → COMPLETED → VERIFIED | exceptions: BLOCKED, OVERDUE, ESCALATED. Build a <span class="code-hint">transitionState(actionId, newState, actor)</span> function. Every call writes to audit_log.</div>
+        </div>
+
+        <div class="task t-ai">
+          <div class="task-head"><span class="task-name">Dependency graph builder</span><span class="task-badge">AI · WOW</span></div>
+          <div class="task-how">After extraction, link actions in clinical order. Doctor review can't start until ECG + blood test are VERIFIED.</div>
+          <div class="task-impl"><strong>How:</strong> In Claude prompt add "also return depends_on: [] listing action types that must complete first." Store as a depends_on array in DB. Build a <span class="code-hint">isUnblocked(actionId)</span> check that queries all dependencies.</div>
+        </div>
+
+        <div class="task t-build">
+          <div class="task-head"><span class="task-name">Mock APIs — lab, referral, pharmacy</span><span class="task-badge">BACKEND</span></div>
+          <div class="task-how">Three fake endpoints that simulate external hospital systems. The agent calls these to "execute" orders.</div>
+          <div class="task-impl"><strong>How:</strong> Build inside the Node backend: POST /mock/lab/book → returns {slotId, datetime, status:"booked"}, POST /mock/referral/send → returns {refId, dept, status:"sent"}, POST /mock/pharmacy/notify → returns {rxId, status:"logged"}. Add random 10% failure rate to test self-healing.</div>
+        </div>
+
+        <div class="task t-infra">
+          <div class="task-head"><span class="task-name">Auth — Firebase / JWT</span><span class="task-badge">INFRA</span></div>
+          <div class="task-how">Three roles: doctor, coordinator, patient. Don't over-engineer. Simple JWT middleware is fine.</div>
+          <div class="task-impl"><strong>How:</strong> Firebase Auth is fastest — 30 mins to set up. Add role claim to Firebase user. Middleware checks role on every protected route. Hardcode 3 demo accounts: doctor@careloop.dev, coord@careloop.dev, patient@careloop.dev.</div>
+        </div>
+
+        <div class="note-box nb-warn">
+          <strong>⚠ Critical checkpoint</strong>
+          By end of Day 2: paste a doctor's note → get actions in DB → state machine can transition them → mock APIs respond. If any of these don't work, fix before Day 3. Don't build on a broken foundation.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- spacers -->
+    <div></div><div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PHASE 2 — AGENT CORE
+═══════════════════════════════════════════ -->
+<div class="phase" id="phase2">
+  <div class="phase-hd">
+    <span class="ph-num">PHASE 02</span>
+    <span class="ph-name">Agent Core — Executor, Self-Healing, WhatsApp, Dashboard</span>
+    <span class="ph-days">Days 3–4</span>
+    <span class="ph-goal">The "wow" moment — paste note, watch system execute</span>
+  </div>
+
+  <div class="day-row">
+    <div></div><div></div>
+
+    <!-- DAY 3 -->
+    <div class="day-card" data-delay="0">
+      <div class="day-card-hd">
+        <div><div class="dc-day">DAY 3 — Wednesday</div><div class="dc-theme">Autonomous executor + LLM function calling</div></div>
+        <div class="dc-bar" style="background:var(--purple);"></div>
+      </div>
+      <div class="day-card-body">
+
+        <div class="task t-ai">
+          <div class="task-head"><span class="task-name">LLM function calling agent</span><span class="task-badge">AI · WOW</span></div>
+          <div class="task-how">The centrepiece. LLM decides which mock API to call, calls it, handles the response — all autonomously. This is what separates CareLoop from a tracker.</div>
+          <div class="task-impl"><strong>How:</strong> Use Claude API with tool_use. Define tools: book_lab_test(patient_id, test_type), send_referral(patient_id, dept), notify_pharmacy(patient_id, medication), schedule_followup(patient_id, days). Pass extracted actions to Claude as user message: "Execute these care actions using the available tools." Let Claude call them in dependency order. Poll tool_use blocks from response.</div>
+        </div>
+
+        <div class="task t-build">
+          <div class="task-head"><span class="task-name">Execution orchestrator</span><span class="task-badge">CORE</span></div>
+          <div class="task-how">Node.js service that: checks dependency graph, calls agent for unblocked actions, updates state machine on result.</div>
+          <div class="task-impl"><strong>How:</strong> <span class="code-hint">async function executeJourney(journeyId)</span> — fetch all actions, filter to unblocked + VALIDATED, call LLM agent, for each tool_use result call <span class="code-hint">transitionState()</span> to SCHEDULED or ASSIGNED. Run this after every extraction.</div>
+        </div>
+
+        <div class="task t-build">
+          <div class="task-head"><span class="task-name">Self-healing retry engine</span><span class="task-badge">CORE · WOW</span></div>
+          <div class="task-how">When a mock API returns failure: retry with alternate slot → alternate department → then and only then escalate to coordinator.</div>
+          <div class="task-impl"><strong>How:</strong> Wrap every mock API call in try-catch. On failure: increment retry_count in DB. retry_count 1 → call same API with different slot param. retry_count 2 → call API with alt_dept param. retry_count 3 → <span class="code-hint">transitionState(ESCALATED)</span> and push to exception queue. Log all retries to audit_log.</div>
+        </div>
+
+        <div class="task t-build">
+          <div class="task-head"><span class="task-name">E2E test run #1</span><span class="task-badge">QA</span></div>
+          <div class="task-how">Paste Ramesh's exact note. Verify: 4 actions extracted, dependency graph correct, all 4 execute via agent, states update, audit log has entries.</div>
+          <div class="task-impl"><strong>Check:</strong> ECG and blood test should execute immediately. Doctor review should remain BLOCKED. Cardiology referral should execute. If self-healing is wired, kill one mock API and verify retry fires.</div>
+        </div>
+
+        <div class="note-box nb-win">
+          <strong>🏆 Day 3 is your biggest day</strong>
+          If LLM function calling works by end of Day 3, you have the core wow feature. Everything from Day 4 onward is making it presentable. If it's struggling, fall back to hardcoded executor logic — the agent narrative still holds, you just don't call it function calling.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DAY 4 -->
+    <div class="day-card" data-delay="80">
+      <div class="day-card-hd">
+        <div><div class="dc-day">DAY 4 — Thursday</div><div class="dc-theme">WhatsApp + gap detector + coordinator dashboard</div></div>
+        <div class="dc-bar" style="background:var(--purple);"></div>
+      </div>
+      <div class="day-card-body">
+
+        <div class="task t-build">
+          <div class="task-head"><span class="task-name">WhatsApp patient notification</span><span class="task-badge">COMMS · WOW</span></div>
+          <div class="task-how">After execution, patient receives a WhatsApp message with their bookings and a one-tap confirm link. This is the demo's most visceral moment — judges see a real phone buzz.</div>
+          <div class="task-impl"><strong>How:</strong> Twilio WhatsApp Sandbox (free). Pre-approve your demo phone on Day 1 at twilio.com/console. After agent executes: <span class="code-hint">client.messages.create({from:'whatsapp:+14155238886', to:'whatsapp:+91XXXXXXXXXX', body:'Done ✅ — ECG booked tomorrow 9am. Cardiology referral sent. Reply YES to confirm.'})</span>. On YES reply webhook → transition action to CONFIRMED.</div>
+        </div>
+
+        <div class="task t-build">
+          <div class="task-head"><span class="task-name">Care gap detector</span><span class="task-badge">CORE · WOW</span></div>
+          <div class="task-how">Cron job that runs every 5 minutes. Checks all active journeys for 5 broken transition types.</div>
+          <div class="task-impl"><strong>5 gap types to detect:</strong> 1) action in CREATED state >1hr with no VALIDATED transition, 2) action SCHEDULED but no IN_PROGRESS after deadline, 3) action COMPLETED but no doctor review triggered within 2hrs, 4) action OVERDUE — deadline < now and not VERIFIED, 5) dependency completed but blocked action not unblocked. On detection → transition to OVERDUE or ESCALATED + push to exception queue.</div>
+        </div>
+
+        <div class="task t-ui">
+          <div class="task-head"><span class="task-name">Coordinator exception dashboard</span><span class="task-badge">UI</span></div>
+          <div class="task-how">Coordinators see ONLY what the agent couldn't resolve. Not all patients. Not all tasks. Just the exceptions. This is the counterintuitive wow — a mostly empty dashboard means the system is working.</div>
+          <div class="task-impl"><strong>Build:</strong> React page. Fetch all actions with status IN [ESCALATED, OVERDUE]. Show: patient name, action type, failure point, how many retries failed, time overdue. One button: "Resolve manually" → calls resolve endpoint → logs coordinator action → removes from list. Empty state message: "No exceptions — agent handled everything."</div>
+        </div>
+
+        <div class="task t-ui">
+          <div class="task-head"><span class="task-name">Doctor note input + action view</span><span class="task-badge">UI</span></div>
+          <div class="task-how">Doctor's screen: textarea for note, submit button, extracted actions appear in real time with confidence badges.</div>
+          <div class="task-impl"><strong>Build:</strong> On submit → POST /extract → stream actions to screen one by one with a 300ms stagger animation. Show each action: name, type badge, confidence %, status chip. This is the live demo's opening moment — make it visually satisfying.</div>
+        </div>
+
+        <div class="note-box nb-tip">
+          <strong>⚡ Day 4 advice</strong>
+          Approve your Twilio WhatsApp sandbox number today. It takes 30 mins and you need it live before the demo. Send yourself a test message now, not on Day 7.
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PHASE 3 — DEMO + POLISH
+═══════════════════════════════════════════ -->
+<div class="phase" id="phase3">
+  <div class="phase-hd">
+    <span class="ph-num">PHASE 03</span>
+    <span class="ph-name">Demo Scenario + UI Polish + Deploy</span>
+    <span class="ph-days">Days 5–6</span>
+    <span class="ph-goal">Judges see it work. On a live URL. Without bugs.</span>
+  </div>
+
+  <div class="day-row">
+
+    <!-- DAY 5 -->
+    <div class="day-card" data-delay="0">
+      <div class="day-card-hd">
+        <div><div class="dc-day">DAY 5 — Friday</div><div class="dc-theme">Ramesh demo scenario + audit trail + patient view</div></div>
+        <div class="dc-bar" style="background:var(--green);"></div>
+      </div>
+      <div class="day-card-body">
+
+        <div class="task t-demo">
+          <div class="task-head"><span class="task-name">Ramesh demo scenario — seeded data</span><span class="task-badge">DEMO · CRITICAL</span></div>
+          <div class="task-how">Pre-seed the DB with Ramesh's patient profile. When you paste his doctor's note on stage, the system already knows who he is and the journey runs instantly.</div>
+          <div class="task-impl"><strong>Seed script:</strong> Insert Ramesh Kumar, 62M, phone +91XXXXXXXXXX. Pre-register this number in Twilio sandbox. Demo flow: paste note → 4 actions extracted (show stagger animation) → agent executes (show API calls in log) → WhatsApp sent (show on phone) → actions in SCHEDULED state → journey timeline shows green ticks. Practice this exact sequence until it takes 90 seconds.</div>
+        </div>
+
+        <div class="task t-demo">
+          <div class="task-head"><span class="task-name">Live agent execution log</span><span class="task-badge">DEMO · WOW</span></div>
+          <div class="task-how">A real-time panel that shows the agent's decisions as they happen. Judges watch: "calling lab API… booked slot 09:00… sending referral to cardiology… done." This is cinema.</div>
+          <div class="task-impl"><strong>How:</strong> Server-sent events (SSE) or WebSocket from Node backend. Every time the agent calls a tool or transitions a state, emit an event. Frontend shows a scrolling log panel with timestamp, action, and result. Use a monospace font. Green for success, amber for retry, red for escalation.</div>
+        </div>
+
+        <div class="task t-build">
+          <div class="task-head"><span class="task-name">Full audit trail UI</span><span class="task-badge">FEATURE</span></div>
+          <div class="task-how">Replayable timeline of every state change. Demonstrates accountability — every autonomous decision is logged.</div>
+          <div class="task-impl"><strong>Build:</strong> React timeline component. Fetch audit_log for a journey. Show each entry: icon (agent/human/system), timestamp, "ECG → SCHEDULED by agent", "retry #1 — alternate slot booked". Judges love this — it shows you thought about production, not just the happy path.</div>
+        </div>
+
+        <div class="task t-build">
+          <div class="task-head"><span class="task-name">Doctor closure notification</span><span class="task-badge">FEATURE</span></div>
+          <div class="task-how">When all actions in a journey reach VERIFIED — automatically notify the doctor. The loop is closed.</div>
+          <div class="task-impl"><strong>How:</strong> After every <span class="code-hint">transitionState(VERIFIED)</span> call, check if all sibling actions are VERIFIED. If yes → send email/in-app notification to doctor: "Ramesh Kumar's care journey is complete. All 4 actions verified." Update journey status to CLOSED in DB.</div>
+        </div>
+
+        <div class="note-box nb-tip">
+          <strong>⚡ Day 5 advice</strong>
+          Run the full demo scenario 5 times today. Time it. It should take 90 seconds max. If it takes 3 minutes, something is wrong — find the bottleneck and fix it. The live execution log is optional if time is tight — but it makes the demo 10× more impressive.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DAY 6 -->
+    <div class="day-card" data-delay="80">
+      <div class="day-card-hd">
+        <div><div class="dc-day">DAY 6 — Saturday</div><div class="dc-theme">UI polish + deploy + buffer</div></div>
+        <div class="dc-bar" style="background:var(--green);"></div>
+      </div>
+      <div class="day-card-body">
+
+        <div class="task t-ui">
+          <div class="task-head"><span class="task-name">UI consistency sweep</span><span class="task-badge">DESIGN</span></div>
+          <div class="task-how">One pass through every screen. Fix spacing, font sizes, color inconsistencies. It doesn't need to be beautiful — it needs to look intentional.</div>
+          <div class="task-impl"><strong>Checklist:</strong> Consistent padding (16px or 24px, pick one). Same font size for all labels. Status badges same style everywhere. Loading states on every async action. Empty states have copy (not blank screens). Buttons have hover states. Forms have validation feedback.</div>
+        </div>
+
+        <div class="task t-ui">
+          <div class="task-head"><span class="task-name">Patient journey timeline view</span><span class="task-badge">UI</span></div>
+          <div class="task-how">A visual view of Ramesh's care journey — each step with status icons. This is what you show when you say "the patient can see exactly what was promised."</div>
+          <div class="task-impl"><strong>Build:</strong> Vertical timeline. Each action: icon (test/referral/pill/calendar), name, status chip (Done ✅ / Pending ⏳ / Gap ❌), date. Show dependency lines between connected steps. Mobile-friendly — show this on your phone during demo.</div>
+        </div>
+
+        <div class="task t-infra">
+          <div class="task-head"><span class="task-name">Deploy — Vercel + Railway</span><span class="task-badge">INFRA · CRITICAL</span></div>
+          <div class="task-how">Frontend on Vercel. Node backend + FastAPI on Railway. Both must be live before Day 7. Never present from localhost.</div>
+          <div class="task-impl"><strong>How:</strong> Vercel: connect GitHub repo, set REACT_APP_API_URL env. Railway: deploy Node and Python services separately, set all env vars (Supabase URL, Claude API key, Twilio creds). Test every endpoint from the live Vercel URL. Note: Railway free tier sleeps after 30min inactivity — ping services or upgrade $5/mo for demo weekend.</div>
+        </div>
+
+        <div class="task t-buffer">
+          <div class="task-head"><span class="task-name">Buffer — fix anything broken</span><span class="task-badge">QA</span></div>
+          <div class="task-how">Half of Day 6 is reserved for fixing things that broke in Days 1–5. Do not fill this time with new features.</div>
+          <div class="task-impl"><strong>Priority order for fixes:</strong> 1) Demo scenario must run cleanly, 2) WhatsApp must send on live URL, 3) coordinator dashboard must load, 4) audit trail must show entries. Everything else is cosmetic.</div>
+        </div>
+
+        <div class="note-box nb-warn">
+          <strong>⚠ Deploy warning</strong>
+          Cold starts on Railway free tier can take 15–30 seconds. During the demo this looks like your app is broken. Upgrade to the $5 plan OR set up an UptimeRobot ping every 5 minutes to keep services warm. Do this on Day 6, not Day 8 morning.
+        </div>
+
+      </div>
+    </div>
+
+    <div></div><div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PHASE 4 — PITCH + WIN
+═══════════════════════════════════════════ -->
+<div class="phase" id="phase4">
+  <div class="phase-hd">
+    <span class="ph-num">PHASE 04</span>
+    <span class="ph-name">Pitch + Rehearse + Win</span>
+    <span class="ph-days">Days 7–8</span>
+    <span class="ph-goal">Judges remember you when results are announced</span>
+  </div>
+
+  <div class="day-row">
+    <div></div><div></div><div></div>
+
+    <!-- DAY 7 -->
+    <div class="day-card" data-delay="0">
+      <div class="day-card-hd">
+        <div><div class="dc-day">DAY 7 — Sunday</div><div class="dc-theme">Pitch deck + demo script + rehearsal ×3</div></div>
+        <div class="dc-bar" style="background:var(--red);"></div>
+      </div>
+      <div class="day-card-body">
+
+        <div class="task t-pitch">
+          <div class="task-head"><span class="task-name">Pitch deck — 7 slides max</span><span class="task-badge">PITCH</span></div>
+          <div class="task-how">Do not spend more than 2 hours on this. Slides are supporting material — the live demo is the pitch.</div>
+          <div class="task-impl"><strong>Slide order:</strong> 1) Ramesh's story (the problem, one slide, one paragraph, no bullets), 2) The gap in one sentence, 3) "CareLoop doesn't remind — it executes" (full slide, nothing else), 4) Live demo (this is where you switch to the app), 5) How it works (dependency graph + confidence scoring), 6) Tech stack (one slide, humble, confident), 7) Impact + "What if every mid-tier hospital had this?"</div>
+        </div>
+
+        <div class="task t-pitch">
+          <div class="task-head"><span class="task-name">Demo script — written and timed</span><span class="task-badge">PITCH</span></div>
+          <div class="task-how">Write the exact words you'll say during the live demo. 90 seconds. Every second planned.</div>
+          <div class="task-impl"><strong>Script:</strong> "Ramesh Kumar, 62, chest pain. Doctor writes this note." [paste note] "Watch what happens." [pause — actions appear] "Four care actions extracted, in under 2 seconds." [pause] "The agent is now executing them." [log panel scrolls] "ECG booked. Lab notified. Referral sent. And —" [phone buzzes] "Ramesh just got a WhatsApp." [show phone] "He hasn't been waiting. He hasn't been chasing. He just got told it's done." [pause] "No human pressed a button."</div>
+        </div>
+
+        <div class="task t-pitch">
+          <div class="task-head"><span class="task-name">Rehearse ×3 — full run with timer</span><span class="task-badge">PITCH</span></div>
+          <div class="task-how">Every team member does the full pitch + demo at least once. The person demoing must be able to do it in the dark.</div>
+          <div class="task-impl"><strong>Rules for rehearsal:</strong> Use the live URL, not localhost. Have a phone with Twilio pre-approved. Time every run. Cut anything that makes it go over 4 minutes total. If the live demo takes >90 seconds, find the bottleneck. Practice the Q&A: "Why not just use an EHR?" / "How do you handle wrong extractions?" / "What's the business model?"</div>
+        </div>
+
+        <div class="task t-demo">
+          <div class="task-head"><span class="task-name">Record fallback video</span><span class="task-badge">SAFETY</span></div>
+          <div class="task-how">Record the perfect demo run as a video. If WiFi fails, play the video. No exceptions to this rule.</div>
+          <div class="task-impl"><strong>How:</strong> Use OBS or QuickTime. Record your screen + the phone WhatsApp moment. Edit to exactly 90 seconds. Export as MP4, bring on USB stick AND uploaded to Google Drive. Practice saying "Let me also show you on video" smoothly — it should not sound like a failure.</div>
+        </div>
+
+        <div class="note-box nb-win">
+          <strong>🏆 The winning mindset for Day 7</strong>
+          After 3 rehearsals, stop. You know the demo. Overshooting rehearsal makes you robotic. Get 8 hours of sleep. Tomorrow's energy matters more than tonight's practice.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DAY 8 -->
+    <div class="day-card" data-delay="80">
+      <div class="day-card-hd">
+        <div><div class="dc-day">DAY 8 — Monday</div><div class="dc-theme">Submit. Present. Win.</div></div>
+        <div class="dc-bar" style="background:var(--red);"></div>
+      </div>
+      <div class="day-card-body">
+
+        <div class="task t-pitch">
+          <div class="task-head"><span class="task-name">Final dry run — morning</span><span class="task-badge">PITCH</span></div>
+          <div class="task-how">One run of the full presentation before you leave. Fix nothing. Just run it to confirm everything still works on the live URL.</div>
+          <div class="task-impl"><strong>Check:</strong> Live URL loads fast (no cold start), WhatsApp fires, coordinator dashboard shows exceptions, demo note pastes cleanly, audio is on if using video fallback.</div>
+        </div>
+
+        <div class="task t-demo">
+          <div class="task-head"><span class="task-name">Submission package</span><span class="task-badge">SUBMIT</span></div>
+          <div class="task-how">Have everything ready before you arrive at the venue.</div>
+          <div class="task-impl"><strong>Package:</strong> Live URL (Vercel), GitHub repo (clean README with one-line setup, screenshots, and the one-liner tagline), pitch deck (PDF + Google Slides), demo video (MP4, USB), WhatsApp demo number pre-approved in Twilio. Brief everyone on the URL so any team member can open it if needed.</div>
+        </div>
+
+        <div class="task t-pitch">
+          <div class="task-head"><span class="task-name">The presentation itself</span><span class="task-badge">WIN</span></div>
+          <div class="task-how">Open with Ramesh. Close with the one-liner. Say it like you mean it.</div>
+          <div class="task-impl"><strong>Non-negotiables:</strong> Never say "um, so basically." Open with "Meet Ramesh." Make eye contact when the WhatsApp arrives on phone. Don't rush the pause after the phone buzzes — let judges feel it. Last words are always: "CareLoop doesn't remind — it executes." Then stop talking.</div>
+        </div>
+
+        <div class="note-box nb-win">
+          <strong>🏆 The one thing that wins hackathons</strong>
+          Judges remember feelings, not features. The feeling you want them to have: "I just watched a system do in 90 seconds what a coordinator spends 3 hours doing manually." Build for that moment. Everything else is scaffolding.
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FEATURE IMPLEMENTATION TABLE
+═══════════════════════════════════════════ -->
+<div style="margin-bottom:3rem;" id="features">
+  <div class="sec-title">Feature implementation guide <span>— what to build + how to build it</span></div>
+  <table class="feat-table">
+    <thead>
+      <tr>
+        <th style="width:16%">Feature</th>
+        <th style="width:8%">Ships</th>
+        <th style="width:8%">Type</th>
+        <th style="width:32%">How to implement</th>
+        <th>Demo moment</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Clinical NLP extraction</td>
+        <td>Day 1</td>
+        <td><span class="feat-tag ft-wow">WOW</span></td>
+        <td><ul class="impl-steps"><li>POST /extract to FastAPI</li><li>Claude API with structured prompt</li><li>Returns [{action, type, confidence, depends_on}]</li><li>Store in care_actions table</li></ul></td>
+        <td>Paste Ramesh's note → 4 action cards appear on screen with stagger animation</td>
+      </tr>
+      <tr>
+        <td>Confidence-gated autonomy</td>
+        <td>Day 1</td>
+        <td><span class="feat-tag ft-wow">WOW</span></td>
+        <td><ul class="impl-steps"><li>Classify by confidence threshold in Python</li><li>>0.85 = Explicit → auto-execute</li><li>0.5–0.85 = Conditional → flag in UI</li><li><0.5 = Ambiguous → hold for human</li></ul></td>
+        <td>Show a conditional action flagged in amber — "system chose not to act on this alone"</td>
+      </tr>
+      <tr>
+        <td>Dependency graph engine</td>
+        <td>Day 2</td>
+        <td><span class="feat-tag ft-wow">WOW</span></td>
+        <td><ul class="impl-steps"><li>Claude API returns depends_on[] per action</li><li>Store in depends_on column</li><li>isUnblocked() queries all deps for VERIFIED status</li><li>Executor only runs unblocked actions</li></ul></td>
+        <td>Show "Doctor review — BLOCKED (waiting on ECG + blood test)" in the journey view</td>
+      </tr>
+      <tr>
+        <td>Care action state machine</td>
+        <td>Day 2</td>
+        <td><span class="feat-tag ft-core">CORE</span></td>
+        <td><ul class="impl-steps"><li>transitionState(id, newState, actor) function</li><li>Every transition writes to audit_log</li><li>10 states: 7 normal + 3 exception</li><li>Status badge in UI reflects state</li></ul></td>
+        <td>Live status chips updating in real time during agent execution</td>
+      </tr>
+      <tr>
+        <td>Autonomous executor + LLM function calling</td>
+        <td>Day 3</td>
+        <td><span class="feat-tag ft-wow">WOW</span></td>
+        <td><ul class="impl-steps"><li>Claude API tool_use with 4 defined tools</li><li>Pass unblocked actions as user message</li><li>Parse tool_use blocks from response</li><li>Call corresponding mock API for each</li></ul></td>
+        <td>Live execution log panel scrolling — agent calling APIs in real time</td>
+      </tr>
+      <tr>
+        <td>Self-healing retry engine</td>
+        <td>Day 3</td>
+        <td><span class="feat-tag ft-wow">WOW</span></td>
+        <td><ul class="impl-steps"><li>try/catch on every mock API call</li><li>retry_count field in care_actions</li><li>Retry 1: same API, different slot</li><li>Retry 2: alt department</li><li>Retry 3: ESCALATED + exception queue</li></ul></td>
+        <td>Show "Retry 1 — alternate slot found" in the audit trail log</td>
+      </tr>
+      <tr>
+        <td>WhatsApp patient confirmations</td>
+        <td>Day 4</td>
+        <td><span class="feat-tag ft-core">CORE</span></td>
+        <td><ul class="impl-steps"><li>Twilio WhatsApp Sandbox</li><li>Send after each successful execution</li><li>Webhook on reply → update action state</li><li>Pre-approve demo number on Day 1</li></ul></td>
+        <td>Phone buzzes live on stage. Judges see it. Say nothing. Let the moment land.</td>
+      </tr>
+      <tr>
+        <td>Care gap detector</td>
+        <td>Day 4</td>
+        <td><span class="feat-tag ft-wow">WOW</span></td>
+        <td><ul class="impl-steps"><li>node-cron job every 5 minutes</li><li>Query all active journeys</li><li>Check 5 gap types (see Phase 2 detail)</li><li>transitionState(OVERDUE) on detection</li></ul></td>
+        <td>Manually trigger a gap in demo mode → coordinator dashboard lights up with exception</td>
+      </tr>
+      <tr>
+        <td>Exception-only coordinator dashboard</td>
+        <td>Day 4</td>
+        <td><span class="feat-tag ft-core">CORE</span></td>
+        <td><ul class="impl-steps"><li>Fetch actions WHERE status IN (ESCALATED, OVERDUE)</li><li>Show failure point + retry count + time overdue</li><li>Resolve button → transitions state + logs</li><li>Empty state: "Agent handled everything"</li></ul></td>
+        <td>Show the empty dashboard first — "this is what 95% of mornings look like." Then trigger an exception.</td>
+      </tr>
+      <tr>
+        <td>Doctor closure loop</td>
+        <td>Day 5</td>
+        <td><span class="feat-tag ft-core">CORE</span></td>
+        <td><ul class="impl-steps"><li>After every VERIFIED transition</li><li>Check if all journey actions are VERIFIED</li><li>If yes → update journey status to CLOSED</li><li>Send in-app notification to doctor</li></ul></td>
+        <td>Demo: manually verify last action → doctor screen shows "Journey closed ✅"</td>
+      </tr>
+      <tr>
+        <td>Full audit trail</td>
+        <td>Day 5</td>
+        <td><span class="feat-tag ft-demo">DEMO</span></td>
+        <td><ul class="impl-steps"><li>Fetch audit_log for journey, ordered by timestamp</li><li>Timeline component — icon + timestamp + description</li><li>Agent actions in blue, human in green, system in grey</li><li>Show retries as amber entries</li></ul></td>
+        <td>Scroll through Ramesh's complete log — "every autonomous decision, recorded and accountable"</td>
+      </tr>
+      <tr>
+        <td>Live execution log (SSE)</td>
+        <td>Day 5</td>
+        <td><span class="feat-tag ft-demo">DEMO</span></td>
+        <td><ul class="impl-steps"><li>Server-sent events from Node backend</li><li>Emit on every API call + state transition</li><li>React EventSource listener</li><li>Scrolling log panel with monospace font</li></ul></td>
+        <td>This is the cinema moment. Agent log scrolling while patient gets WhatsApp. Two screens, one story.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     TECH STACK
+═══════════════════════════════════════════ -->
+<div style="margin-bottom:3rem;" id="stack">
+  <div class="sec-title">Tech stack <span>— every tool + setup command</span></div>
+  <div class="stack-grid">
+    <div class="stack-card">
+      <div class="sc-layer">Frontend</div>
+      <div class="sc-tech">React + Tailwind CSS</div>
+      <div class="sc-note">Fastest to ship. No time for Vue or Next.</div>
+      <code class="sc-cmd">npx create-react-app careloop-ui && cd careloop-ui && npm i -D tailwindcss</code>
+    </div>
+    <div class="stack-card">
+      <div class="sc-layer">Backend API</div>
+      <div class="sc-tech">Node.js + Express</div>
+      <div class="sc-note">Routes, state machine, orchestrator, mock APIs</div>
+      <code class="sc-cmd">npm init -y && npm i express cors dotenv pg node-cron</code>
+    </div>
+    <div class="stack-card">
+      <div class="sc-layer">AI / NLP</div>
+      <div class="sc-tech">Python + FastAPI + Claude API</div>
+      <div class="sc-note">NLP extraction service. Keep it separate from Node.</div>
+      <code class="sc-cmd">pip install fastapi uvicorn anthropic python-dotenv</code>
+    </div>
+    <div class="stack-card">
+      <div class="sc-layer">Database</div>
+      <div class="sc-tech">PostgreSQL via Supabase</div>
+      <div class="sc-note">Free hosted Postgres. No setup. Just connect.</div>
+      <code class="sc-cmd">supabase.com → new project → get connection string</code>
+    </div>
+    <div class="stack-card">
+      <div class="sc-layer">Notifications</div>
+      <div class="sc-tech">Twilio WhatsApp Sandbox</div>
+      <div class="sc-note">Free. Pre-approve your phone in sandbox today.</div>
+      <code class="sc-cmd">npm i twilio && whatsapp:+14155238886 (sandbox)</code>
+    </div>
+    <div class="stack-card">
+      <div class="sc-layer">Real-time</div>
+      <div class="sc-tech">Server-Sent Events (SSE)</div>
+      <div class="sc-note">For live execution log. Simpler than WebSockets.</div>
+      <code class="sc-cmd">res.setHeader('Content-Type','text/event-stream')</code>
+    </div>
+    <div class="stack-card">
+      <div class="sc-layer">Auth</div>
+      <div class="sc-tech">Firebase Auth</div>
+      <div class="sc-note">30 minutes to set up. 3 demo accounts hardcoded.</div>
+      <code class="sc-cmd">npm i firebase && firebase.google.com/console</code>
+    </div>
+    <div class="stack-card">
+      <div class="sc-layer">Frontend deploy</div>
+      <div class="sc-tech">Vercel</div>
+      <div class="sc-note">Connect GitHub. Auto-deploy on push. Free.</div>
+      <code class="sc-cmd">vercel.com → import GitHub repo → done</code>
+    </div>
+    <div class="stack-card">
+      <div class="sc-layer">Backend deploy</div>
+      <div class="sc-tech">Railway</div>
+      <div class="sc-note">Deploy Node + FastAPI as separate services. $5/mo for always-on.</div>
+      <code class="sc-cmd">railway.app → new project → deploy from GitHub</code>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     RISK TABLE
+═══════════════════════════════════════════ -->
+<div style="margin-bottom:3rem;" id="risks">
+  <div class="sec-title">Risk register <span>— read this on Day 1, not Day 7</span></div>
+  <table class="risk-table">
+    <thead>
+      <tr>
+        <th style="width:18%">Risk</th>
+        <th style="width:9%">Level</th>
+        <th style="width:20%">What it looks like</th>
+        <th>Exactly what to do</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>LLM function calling doesn't work cleanly</strong></td>
+        <td><span class="rb rb-h">High</span></td>
+        <td>Agent calls wrong tool or returns errors on stage</td>
+        <td><strong>Fallback:</strong> Hardcode the executor — if action.type==='test' call bookLab(), etc. The demo still shows autonomous execution. The "LLM decides" story becomes "rules-based agent" — still impressive, still different from a tracker.</td>
+      </tr>
+      <tr>
+        <td><strong>Claude API is slow (&gt;5s)</strong></td>
+        <td><span class="rb rb-h">High</span></td>
+        <td>Demo stalls on stage — awkward silence, judges lose interest</td>
+        <td><strong>Cache the Ramesh response.</strong> First time you run the extraction, store the result in DB. On demo, check cache first — if exists, return immediately. Add a "using cached response" label. Judges don't care. Speed does.</td>
+      </tr>
+      <tr>
+        <td><strong>Twilio WhatsApp sandbox limit</strong></td>
+        <td><span class="rb rb-m">Medium</span></td>
+        <td>Message doesn't arrive live on stage</td>
+        <td>Approve your demo phone on Day 1. Test it 10 times before Day 8. If it fails on stage, have a screenshot of the WhatsApp on your phone from the last test run. Show the screenshot. Say "here's what Ramesh receives."</td>
+      </tr>
+      <tr>
+        <td><strong>Railway cold start</strong></td>
+        <td><span class="rb rb-m">Medium</span></td>
+        <td>First API call takes 20 seconds</td>
+        <td>Set up UptimeRobot free account → ping your Railway URL every 5 minutes. Or pay $5 for the Railway Hobby plan for the demo weekend. Do this on Day 6.</td>
+      </tr>
+      <tr>
+        <td><strong>WiFi fails on stage</strong></td>
+        <td><span class="rb rb-m">Medium</span></td>
+        <td>Live demo dead</td>
+        <td>Record the full demo video on Day 7. Bring it on USB + Google Drive. Practice saying "I'll show you the live URL after — let me play the recording first." Smooth delivery kills the awkwardness.</td>
+      </tr>
+      <tr>
+        <td><strong>Scope creep — building too much</strong></td>
+        <td><span class="rb rb-h">High</span></td>
+        <td>Core features half-working by Day 6</td>
+        <td><strong>Rule:</strong> If a feature is not in this roadmap, it does not get built. After Day 5, no new features. Only fixing and polishing. A clean demo of 10 features beats a broken demo of 15.</td>
+      </tr>
+      <tr>
+        <td><strong>Team member didn't finish their part</strong></td>
+        <td><span class="rb rb-l">Low</span></td>
+        <td>Key feature missing before demo</td>
+        <td>Assign owners now. Each phase has a lead. If someone falls behind by Day 4 — redistribute, don't wait. Drop the lowest-priority feature and make sure the demo scenario works end-to-end.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     WIN CONDITIONS
+═══════════════════════════════════════════ -->
+<div style="margin-bottom:2rem;" id="win">
+  <div class="sec-title">Win conditions <span>— three things that guarantee the result</span></div>
+  <div class="win-grid">
+    <div class="win-card wc-b">
+      <h4>Demo that lands</h4>
+      <ul>
+        <li>Open with Ramesh's story — not a slide, not features</li>
+        <li>Paste the note live. Watch the system go.</li>
+        <li>Show the WhatsApp arrive on a real phone</li>
+        <li>Flip to coordinator dashboard — it's empty</li>
+        <li>Say "No human pressed a button." Then stop.</li>
+        <li>Fallback video ready if WiFi dies</li>
+        <li>Total demo time: 90 seconds. Not one second more.</li>
+      </ul>
+    </div>
+    <div class="win-card wc-p">
+      <h4>Tech judges respect</h4>
+      <ul>
+        <li>LLM function calling — the modern agentic AI pattern</li>
+        <li>Dependency graph — real system design thinking</li>
+        <li>Confidence-gated autonomy — nuance, not binary</li>
+        <li>Self-healing retries — production-aware</li>
+        <li>SSE real-time log — shows you understand async</li>
+        <li>Deployed live URL — not localhost</li>
+        <li>Clean GitHub README — one-line setup</li>
+      </ul>
+    </div>
+    <div class="win-card wc-g">
+      <h4>Pitch that sticks</h4>
+      <ul>
+        <li>One sentence: "CareLoop doesn't remind — it executes"</li>
+        <li>India mid-market angle — specific, not generic</li>
+        <li>The 40% stat — ordered tests never completed</li>
+        <li>Three-tier intervention (agent → coordinator → doctor)</li>
+        <li>Every team member answers: "what did you build?"</li>
+        <li>Q&A prep: EHR question, accuracy question, scale question</li>
+        <li>End with the one-liner. Every. Single. Time.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  <span><span class="fb">Care<span>Loop</span></span> — 8-Day Battle Plan v2</span>
+  <span>VVCE Hackathon 2026 · HLS006</span>
+  <span>"CareLoop doesn't remind — it executes."</span>
+</footer>
+
+<script>
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const el = e.target;
+      const d = parseInt(el.dataset.delay || 0);
+      setTimeout(() => el.classList.add('vis'), d);
+      obs.unobserve(el);
+    }
+  });
+}, { threshold: 0.05 });
+
+document.querySelectorAll('.day-card').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
