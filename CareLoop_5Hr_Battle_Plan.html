@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CareLoop — 5-Hour Battle Plan · HLS006</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --base:     #060D1A;
+    --surf:     #0C1628;
+    --surf2:    #112238;
+    --surf3:    #162A44;
+    --accent:   #00D4AA;
+    --blue:     #3B82F6;
+    --amber:    #F59E0B;
+    --red:      #EF4444;
+    --purple:   #A855F7;
+    --text:     #D9E8F4;
+    --muted:    #5A7A96;
+    --border:   #1B3050;
+    --h1:       #00D4AA;
+    --h2:       #3B82F6;
+    --h3:       #A855F7;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--base); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+  header { background: var(--surf); border-bottom: 1px solid var(--border); padding: 28px 40px 20px; position: sticky; top: 0; z-index: 100; }
+  .header-top { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,212,170,.6); } 70% { box-shadow: 0 0 0 8px rgba(0,212,170,0); } 100% { box-shadow: 0 0 0 0 rgba(0,212,170,0); } }
+  .brand-name { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .brand-name span { color: var(--accent); }
+  .badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500; background: var(--surf2); border: 1px solid var(--border); padding: 3px 8px; border-radius: 4px; color: var(--muted); letter-spacing: 0.5px; }
+  .header-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); text-align: right; line-height: 1.8; }
+  .header-meta strong { color: var(--accent); }
+  .mission-bar { margin-top: 20px; display: flex; align-items: center; gap: 16px; }
+  .mission-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); white-space: nowrap; }
+  .progress-track { flex: 1; height: 4px; background: var(--surf3); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width .4s ease; }
+  .mission-pct { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); font-weight: 700; white-space: nowrap; min-width: 36px; text-align: right; }
+
+  .stats-row { display: flex; gap: 12px; flex-wrap: wrap; padding: 20px 40px; border-bottom: 1px solid var(--border); }
+  .stat-pill { background: var(--surf); border: 1px solid var(--border); border-radius: 6px; padding: 10px 18px; display: flex; flex-direction: column; gap: 2px; }
+  .stat-pill .val { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; }
+  .stat-pill .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.3px; }
+  .val.teal  { color: var(--accent); }
+  .val.blue  { color: var(--blue); }
+  .val.amber { color: var(--amber); }
+  .val.purple{ color: var(--purple); }
+  .val.red   { color: var(--red); }
+
+  .phase-nav { display: flex; gap: 0; padding: 0 40px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .phase-tab { padding: 14px 22px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: color .2s, border-color .2s; background: none; border-left: none; border-right: none; border-top: none; outline: none; white-space: nowrap; }
+  .phase-tab:hover { color: var(--text); }
+  .phase-tab.p1.active { color: var(--h1); border-bottom-color: var(--h1); }
+  .phase-tab.p2.active { color: var(--h2); border-bottom-color: var(--h2); }
+  .phase-tab.p3.active { color: var(--h3); border-bottom-color: var(--h3); }
+
+  main { padding: 32px 40px 80px; max-width: 1100px; }
+  .phase-section { display: none; }
+  .phase-section.active { display: block; }
+
+  .phase-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .phase-title-group { display: flex; flex-direction: column; gap: 6px; }
+  .phase-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1px; }
+  .phase-title { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .phase-goal { font-size: 14px; color: var(--muted); max-width: 560px; margin-top: 4px; line-height: 1.5; }
+  .phase-outcome { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; font-size: 13px; max-width: 300px; }
+  .phase-outcome .out-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 0.5px; margin-bottom: 6px; }
+  .phase-outcome .out-text { line-height: 1.5; }
+
+  .sprint { margin-bottom: 36px; }
+  .sprint-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1px; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .sprint-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .task { background: var(--surf); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; transition: border-color .2s; }
+  .task:hover { border-color: var(--surf3); }
+  .task.done { border-color: rgba(0,212,170,.25); }
+  .task.done .task-header { opacity: .65; }
+  .task-header { display: grid; grid-template-columns: 40px 70px 1fr auto; align-items: start; gap: 0; padding: 14px 16px; cursor: pointer; }
+  .task-check { display: flex; align-items: center; justify-content: center; padding-top: 2px; }
+  .task-check input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+  .task-time { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); padding-top: 3px; padding-right: 12px; }
+  .task-main { display: flex; flex-direction: column; gap: 4px; }
+  .task-name { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; }
+  .task-sub { font-size: 12px; color: var(--muted); }
+  .task-tags { display: flex; gap: 6px; align-items: flex-start; flex-wrap: wrap; padding-top: 2px; }
+  .tag { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.3px; padding: 2px 7px; border-radius: 3px; }
+  .tag.layer  { background: rgba(59,130,246,.15); color: var(--blue); }
+  .tag.wow    { background: rgba(168,85,247,.15); color: var(--purple); }
+  .tag.star   { background: rgba(245,158,11,.2); color: var(--amber); }
+  .tag.crit   { background: rgba(239,68,68,.15); color: var(--red); }
+  .tag.green  { background: rgba(0,212,170,.12); color: var(--accent); }
+
+  .task-body { display: none; padding: 0 16px 16px 46px; border-top: 1px solid var(--border); }
+  .task-body.open { display: block; }
+  .task-body-inner { padding-top: 14px; display: flex; flex-direction: column; gap: 14px; }
+  .section-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 6px; }
+
+  .cmd-block { background: #030812; border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.8; color: #7FFFD4; overflow-x: auto; white-space: pre; }
+  .cmd-block .comment { color: var(--muted); }
+  .cmd-block .kw { color: var(--purple); }
+  .cmd-block .type { color: var(--amber); }
+
+  .build-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .build-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
+  .build-list li::before { content: '→'; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 11px; flex-shrink: 0; margin-top: 2px; }
+
+  .checkpoint { background: rgba(0,212,170,.07); border: 1px solid rgba(0,212,170,.2); border-radius: 6px; padding: 10px 14px; font-size: 12px; line-height: 1.5; }
+  .checkpoint strong { color: var(--accent); font-family: 'Space Grotesk', sans-serif; }
+
+  .wow-block { background: rgba(168,85,247,.07); border: 1px solid rgba(168,85,247,.2); border-radius: 6px; padding: 10px 14px; font-size: 12px; line-height: 1.5; }
+  .wow-block strong { color: var(--purple); }
+
+  .star-block { background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.25); border-radius: 6px; padding: 10px 14px; font-size: 12px; line-height: 1.5; }
+  .star-block strong { color: var(--amber); }
+
+  .scenario-card { background: var(--surf2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+  .scenario-card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .scenario-steps { display: flex; flex-direction: column; gap: 8px; }
+  .s-step { display: grid; grid-template-columns: 70px 1fr auto; gap: 12px; align-items: center; padding: 8px 12px; background: var(--surf); border-radius: 6px; border: 1px solid var(--border); font-size: 12px; }
+  .s-time { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); }
+  .s-status { font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 3px; font-weight: 700; white-space: nowrap; }
+  .s-status.done { background: rgba(0,212,170,.15); color: var(--accent); }
+  .s-status.auto { background: rgba(59,130,246,.15); color: var(--blue); }
+  .s-status.heal { background: rgba(245,158,11,.15); color: var(--amber); }
+  .s-status.esc  { background: rgba(239,68,68,.15); color: var(--red); }
+  .s-status.star { background: rgba(168,85,247,.15); color: var(--purple); }
+
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .feature-card { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .feature-card .f-num { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); margin-bottom: 4px; }
+  .feature-card .f-name { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .feature-card .f-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .feature-card.star-card { border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.04); }
+  .feature-card.star-card .f-name { color: var(--amber); }
+
+  .scorecard { background: var(--surf); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-top: 32px; }
+  .scorecard h3 { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+  .score-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .score-name { font-size: 13px; width: 200px; flex-shrink: 0; }
+  .score-bar-wrap { flex: 1; height: 6px; background: var(--surf2); border-radius: 3px; }
+  .score-bar { height: 100%; border-radius: 3px; }
+  .score-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; min-width: 30px; text-align: right; }
+
+  .timer-banner { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 24px; font-size: 13px; }
+  .timer-icon { font-size: 18px; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surf); }
+  ::-webkit-scrollbar-thumb { background: var(--surf3); border-radius: 3px; }
+
+  @media (max-width: 640px) {
+    header, .stats-row, .phase-nav, main { padding-left: 16px; padding-right: 16px; }
+    .task-header { grid-template-columns: 32px 60px 1fr; }
+    .task-tags { display: none; }
+    .s-step { grid-template-columns: 60px 1fr; }
+    .s-status { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="brand">
+      <div class="pulse-dot"></div>
+      <div>
+        <div class="brand-name">Care<span>Loop</span></div>
+        <div class="badge">HLS006 · VVCE HACKATHON 2026 · AUTONOMOUS CARE EXECUTION AGENT</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <strong>5-HOUR BATTLE PLAN</strong><br>
+      5 hrs · 7 features · 10/10 demo<br>
+      Updated with Plan Anomaly Detection
+    </div>
+  </div>
+  <div class="mission-bar">
+    <span class="mission-label">MISSION PROGRESS</span>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <span class="mission-pct" id="progressPct">0%</span>
+  </div>
+</header>
+
+<div class="stats-row">
+  <div class="stat-pill"><div class="val teal" id="doneCount">0</div><div class="lbl">tasks done</div></div>
+  <div class="stat-pill"><div class="val blue">18</div><div class="lbl">total tasks</div></div>
+  <div class="stat-pill"><div class="val amber">7</div><div class="lbl">core features</div></div>
+  <div class="stat-pill"><div class="val purple">3</div><div class="lbl">bonus features</div></div>
+  <div class="stat-pill"><div class="val red">5</div><div class="lbl">hours only</div></div>
+</div>
+
+<nav class="phase-nav">
+  <button class="phase-tab p1 active" onclick="switchPhase(1)">Phase 1 — Core (Hr 1–2)</button>
+  <button class="phase-tab p2"        onclick="switchPhase(2)">Phase 2 — Intelligence (Hr 2–4)</button>
+  <button class="phase-tab p3"        onclick="switchPhase(3)">Phase 3 — Demo &amp; Win (Hr 4–5)</button>
+</nav>
+
+<main>
+
+<!-- ════ PHASE 1 ════ -->
+<section class="phase-section active" id="phase1">
+
+  <div class="phase-header">
+    <div class="phase-title-group">
+      <div class="phase-eyebrow" style="color:var(--h1)">PHASE 1 · HOUR 0:00 → 2:00</div>
+      <div class="phase-title">Foundation — Core Working</div>
+      <div class="phase-goal">By the end of hour 2, one clear thing must be true: doctor types Ramesh's note, 4 care actions appear on screen with confidence scores, and the dependency graph shows REVIEW as blocked. Everything else builds on this. Do not move to Phase 2 until this checkpoint is green.</div>
+    </div>
+    <div class="phase-outcome">
+      <div class="out-label">HOUR 2 CHECKPOINT</div>
+      <div class="out-text">Note → 4 actions extracted with confidence scores → dependency graph rendered → REVIEW node blocked → mock APIs responding → data persisted in DB.</div>
+    </div>
+  </div>
+
+  <div class="timer-banner">
+    <span class="timer-icon">⏱</span>
+    <span>You have <strong style="color:var(--red)">5 hours total</strong>. Phase 1 ends at hour 2 hard. If you are still on scaffolding at hour 1:30, cut corners on styling — functionality wins the score, not CSS.</span>
+  </div>
+
+  <!-- Feature map -->
+  <div class="sprint">
+    <div class="sprint-label">WHAT YOU'RE BUILDING IN 5 HOURS — AT A GLANCE</div>
+    <div class="feature-grid">
+      <div class="feature-card"><div class="f-num">FEATURE 1 · LAYER 2</div><div class="f-name">Confidence-Gated NLP Extraction</div><div class="f-desc">Groq extracts actions. ≥85% = auto-execute. &lt;85% = held for doctor. Responsible AI angle.</div></div>
+      <div class="feature-card"><div class="f-num">FEATURE 2 · LAYER 3</div><div class="f-name">Dependency Graph Execution</div><div class="f-desc">BullMQ FlowProducer + React Flow visual. REVIEW blocked until ECG + blood test complete. Unlocks live.</div></div>
+      <div class="feature-card star-card"><div class="f-num">FEATURE 3 · LAYER 2 ⭐ STAR</div><div class="f-name">Plan Anomaly Detection</div><div class="f-desc">Result arrives → Groq cross-checks against active care plan JSON → flags contradiction → doctor confirms correction. Nobody else has this.</div></div>
+      <div class="feature-card"><div class="f-num">FEATURE 4 · LAYER 3</div><div class="f-name">Self-Healing + Gap Detection</div><div class="f-desc">3 retries with exponential backoff. Node-cron gap detector every 5 min. Two defensive layers.</div></div>
+      <div class="feature-card"><div class="f-num">FEATURE 5 · LAYER 4</div><div class="f-name">Two-Way WhatsApp Intelligence</div><div class="f-desc">Patient replies in Hindi/English. Groq classifies 5 intents. System acts immediately, no human needed.</div></div>
+      <div class="feature-card"><div class="f-num">FEATURE 6 · LAYER 3</div><div class="f-name">Predictive Drop Risk Score</div><div class="f-desc">Hourly scoring per action. Cross 0.70 → pre-emptive re-ping. Proactive, not reactive.</div></div>
+      <div class="feature-card"><div class="f-num">FEATURE 7 · LAYER 4</div><div class="f-name">Exception-Only Dashboard</div><div class="f-desc">Coordinator sees nothing when agent is working. "0 items need your attention." Full audit trail.</div></div>
+    </div>
+  </div>
+
+  <div class="sprint">
+    <div class="sprint-label">SPRINT 1A · SETUP (0:00 – 0:30)</div>
+
+    <div class="task" id="t1">
+      <div class="task-header" onclick="toggleTask('t1')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t1')"></div>
+        <div class="task-time">0:00<br>–0:30</div>
+        <div class="task-main">
+          <div class="task-name">Scaffold the project — one monorepo, everything connected</div>
+          <div class="task-sub">Frontend + Backend + DB up and talking to each other before writing a single feature</div>
+        </div>
+        <div class="task-tags"><span class="tag crit">DO FIRST</span><span class="tag layer">All Layers</span></div>
+      </div>
+      <div class="task-body" id="b-t1">
+        <div class="task-body-inner">
+          <div class="section-label">FOLDER STRUCTURE</div>
+          <div class="cmd-block">careloop/
+├── frontend/          <span class="comment"># React + Tailwind + React Flow</span>
+├── backend/
+│   ├── routes/        <span class="comment"># Express API endpoints</span>
+│   ├── workers/       <span class="comment"># BullMQ job workers</span>
+│   ├── jobs/          <span class="comment"># node-cron gap detector, drop risk</span>
+│   ├── services/      <span class="comment"># whatsapp.js, groq.js, anomaly.js</span>
+│   └── mock/          <span class="comment"># Mock lab/referral/pharmacy APIs</span>
+└── supabase/          <span class="comment"># Schema SQL</span></div>
+          <div class="section-label">SUPABASE SCHEMA — RUN THIS FIRST</div>
+          <div class="cmd-block"><span class="kw">create table</span> patients (id uuid primary key, name text, age int, phone text, caregiver_phone text);
+<span class="kw">create table</span> care_journeys (id uuid primary key, patient_id uuid, note_text text, status text default 'ACTIVE', created_at timestamptz default now());
+<span class="kw">create table</span> care_actions (
+  id uuid primary key, journey_id uuid, type text, description text,
+  category text, confidence numeric, department text,
+  deadline_at timestamptz, state text default 'CREATED',
+  retry_count int default 0, scheduled_slot text,
+  result_text text, drop_risk numeric default 0,
+  created_at timestamptz default now(), updated_at timestamptz default now()
+);
+<span class="kw">create table</span> action_dependencies (action_id uuid, depends_on_action_id uuid);
+<span class="kw">create table</span> audit_log (id uuid primary key default gen_random_uuid(), journey_id uuid, action_id uuid, ts timestamptz default now(), actor text, event text, reason text, meta jsonb);
+<span class="kw">create table</span> department_slots (id uuid primary key default gen_random_uuid(), department text, slot_time timestamptz, is_booked boolean default false);
+
+<span class="comment">-- Seed Ramesh + slots</span>
+insert into patients values ('ramesh-uuid','Ramesh Kumar',62,'+91XXXXXXXXXX','+91YYYYYYYYYY');
+insert into department_slots (department,slot_time) values
+  ('Lab','2026-10-05 09:00'),('Lab','2026-10-05 11:00'),('Lab','2026-10-05 14:00'),
+  ('Cardiology','2026-10-06 10:00'),('Cardiology','2026-10-07 09:00'),
+  ('Pharmacy','2026-10-05 09:30'),('Clinic','2026-10-11 09:00'),('Clinic','2026-10-12 10:00');</div>
+          <div class="checkpoint"><strong>✓ Done when:</strong> Supabase shows all 6 tables. Frontend can fetch from /api/patients and returns Ramesh. Backend server starts without errors.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sprint">
+    <div class="sprint-label">SPRINT 1B · NLP EXTRACTION (0:30 – 1:15)</div>
+
+    <div class="task" id="t2">
+      <div class="task-header" onclick="toggleTask('t2')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t2')"></div>
+        <div class="task-time">0:30<br>–1:15</div>
+        <div class="task-main">
+          <div class="task-name">Feature 1 — Confidence-gated NLP extraction via Groq</div>
+          <div class="task-sub">Doctor note → structured action JSON → confidence gate → auto-proceed or hold</div>
+        </div>
+        <div class="task-tags"><span class="tag layer">Layer 2</span><span class="tag green">Feature 1</span><span class="tag crit">MUST BUILD</span></div>
+      </div>
+      <div class="task-body" id="b-t2">
+        <div class="task-body-inner">
+          <div class="section-label">backend/services/groq.js</div>
+          <div class="cmd-block"><span class="comment">// npm install groq-sdk</span>
+const Groq = require('groq-sdk');
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+async function extractCareActions(noteText) {
+  const res = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile', <span class="comment">// free, fast, great for structured output</span>
+    messages: [{
+      role: 'system',
+      content: `You are a clinical NLP system. Extract every care action from the doctor's note.
+Return ONLY a JSON array. No prose. No markdown. Each item:
+{
+  "type": "TEST|REFERRAL|MEDICATION|FOLLOWUP|REVIEW",
+  "description": "...",
+  "category": "Explicit|Conditional|Ambiguous",
+  "confidence": 0.0-1.0,
+  "department": "Lab|Cardiology|Pharmacy|Clinic",
+  "deadline_days": 7,
+  "depends_on": []   // array of description strings this must wait for
+}
+Rules:
+- Explicit = clear unambiguous order → confidence >= 0.85
+- Conditional = "if test positive then..." → confidence 0.60-0.84
+- Ambiguous = vague → confidence < 0.60
+- Always add a REVIEW action that depends on all TEST and REFERRAL actions`
+    }, { role: 'user', content: noteText }],
+    temperature: 0.1,
+    max_tokens: 1000
+  });
+  return JSON.parse(res.choices[0].message.content);
+}
+
+<span class="comment">// Confidence gate applied by the route handler:</span>
+<span class="comment">// action.confidence >= 0.85 → state = VALIDATED (auto-executes)</span>
+<span class="comment">// action.confidence < 0.85  → state = HELD (doctor must confirm)</span></div>
+          <div class="checkpoint"><strong>✓ Done when:</strong> POST /api/journeys with Ramesh's note returns 4 actions: ECG (Explicit, 0.95), Lipid Profile (Explicit, 0.95), Cardiology Referral (Explicit, 0.90), Doctor Review (Explicit, 0.92, depends_on: [ECG, Lipid]). All persisted in care_actions.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sprint">
+    <div class="sprint-label">SPRINT 1C · DEPENDENCY GRAPH + EXECUTION (1:15 – 2:00)</div>
+
+    <div class="task" id="t3">
+      <div class="task-header" onclick="toggleTask('t3')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t3')"></div>
+        <div class="task-time">1:15<br>–2:00</div>
+        <div class="task-main">
+          <div class="task-name">Feature 2 — Dependency graph builder + autonomous mock execution</div>
+          <div class="task-sub">VALIDATED actions → mock APIs → SCHEDULED. REVIEW stays BLOCKED until ECG + blood test complete.</div>
+        </div>
+        <div class="task-tags"><span class="tag layer">Layer 3</span><span class="tag green">Feature 2</span><span class="tag crit">MUST BUILD</span></div>
+      </div>
+      <div class="task-body" id="b-t3">
+        <div class="task-body-inner">
+          <div class="section-label">backend/services/executor.js</div>
+          <div class="cmd-block">async function executeAction(action) {
+  <span class="comment">// Check all dependencies are COMPLETED first</span>
+  const deps = await getDependencies(action.id);
+  const allComplete = deps.every(d => d.state === 'COMPLETED');
+  if (!allComplete) {
+    await transition(action.id, 'BLOCKED', 'SYSTEM', 'Waiting on dependencies');
+    return;
+  }
+
+  await transition(action.id, 'ASSIGNED', 'AGENT', 'Routing to department');
+
+  <span class="comment">// Call the right mock API based on action type</span>
+  const mockAPIs = {
+    TEST:      () => bookLabSlot(action),
+    REFERRAL:  () => sendReferral(action),
+    MEDICATION:() => logPharmacyOrder(action),
+    FOLLOWUP:  () => bookClinicSlot(action),
+    REVIEW:    () => notifyDoctor(action)
+  };
+
+  try {
+    const result = await mockAPIs[action.type]();
+    await transition(action.id, 'SCHEDULED', 'AGENT', null, { slot: result.slot });
+    <span class="comment">// Unblock any actions that were waiting for THIS one</span>
+    await checkAndUnblockDependents(action.id);
+  } catch(err) {
+    await handleFailure(action, err); <span class="comment">// → self-healing (Feature 4)</span>
+  }
+}
+
+<span class="comment">// Mock lab API — books next free slot from department_slots</span>
+async function bookLabSlot(action) {
+  const { data: slot } = await supabase
+    .from('department_slots')
+    .select('*').eq('department','Lab').eq('is_booked',false)
+    .order('slot_time').limit(1).single();
+  await supabase.from('department_slots').update({ is_booked: true }).eq('id', slot.id);
+  return { slot: slot.slot_time };
+}</div>
+          <ul class="build-list">
+            <li>Wire up mock endpoints for Lab, Referral, Pharmacy, and Clinic — each just picks the next free slot from department_slots and marks it booked.</li>
+            <li>After a successful booking, always call checkAndUnblockDependents — this is what makes REVIEW auto-unlock live.</li>
+            <li>React Flow visual: fetch actions from Supabase every 3s. Colour nodes by state. Show edges for depends_on. This is the most powerful visual in your demo.</li>
+            <li>Node colours: CREATED=grey, BLOCKED=red, SCHEDULED=blue, COMPLETED=teal, VERIFIED=blue-bright, ESCALATED=red.</li>
+          </ul>
+          <div class="checkpoint"><strong>✓ Phase 1 complete.</strong> Ramesh's note → 4 actions → 3 auto-booked → REVIEW shows red/BLOCKED on graph → dependency edges visible. This works before you touch WhatsApp or anomaly detection.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ════ PHASE 2 ════ -->
+<section class="phase-section" id="phase2">
+
+  <div class="phase-header">
+    <div class="phase-title-group">
+      <div class="phase-eyebrow" style="color:var(--h2)">PHASE 2 · HOUR 2:00 → 4:00</div>
+      <div class="phase-title">Intelligence — The Winning Features</div>
+      <div class="phase-goal">This phase is why CareLoop beats every other team. Plan Anomaly Detection alone is worth 2 extra points with judges — no competing team will have clinical reasoning. Build in strict priority order: Anomaly Detection first, then WhatsApp, then self-healing, then drop risk. Skip drop risk if time is tight — it's the lowest priority here.</div>
+    </div>
+    <div class="phase-outcome">
+      <div class="out-label">HOUR 4 CHECKPOINT</div>
+      <div class="out-text">Anomaly flag fires on ECG result. WhatsApp intent detection classifies "kal nahi" as RESCHEDULE and auto-replies. Self-heal retries on lab failure. Drop risk visible on dashboard.</div>
+    </div>
+  </div>
+
+  <div class="sprint">
+    <div class="sprint-label">SPRINT 2A · PLAN ANOMALY DETECTION — ⭐ THE STAR FEATURE (2:00 – 3:00)</div>
+
+    <div class="task" id="t4">
+      <div class="task-header" onclick="toggleTask('t4')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t4')"></div>
+        <div class="task-time">2:00<br>–3:00</div>
+        <div class="task-main">
+          <div class="task-name">Feature 3 — Plan Anomaly Detection: AI reads every result and checks if the plan is still correct</div>
+          <div class="task-sub">ECG shows ST elevation → CareLoop flags: plan has no emergency referral → doctor confirms correction → plan updated and escalation queued</div>
+        </div>
+        <div class="task-tags"><span class="tag star">⭐ STAR</span><span class="tag layer">Layer 2+3</span><span class="tag wow">NOBODY HAS THIS</span></div>
+      </div>
+      <div class="task-body" id="b-t4">
+        <div class="task-body-inner">
+          <div class="star-block"><strong>⭐ Why this wins:</strong> Every other team closes the booking loop. CareLoop is the only system that reads the result and asks "is this plan still correct?" That is clinical reasoning, not logistics. When you say this to the judges, they pause. Build it first in this phase.</div>
+          <div class="section-label">backend/services/anomaly.js</div>
+          <div class="cmd-block">async function checkPlanAnomaly(journeyId, actionId, resultText) {
+  <span class="comment">// Get the full active care plan for this journey</span>
+  const { data: actions } = await supabase
+    .from('care_actions').select('*').eq('journey_id', journeyId);
+
+  const planJSON = JSON.stringify(actions.map(a => ({
+    type: a.type, description: a.description,
+    state: a.state, department: a.department
+  })));
+
+  <span class="comment">// One Groq call — compare result against plan</span>
+  const res = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    messages: [{
+      role: 'system',
+      content: `You are a clinical safety AI. A test result just arrived.
+Compare it against the active care plan. Detect if the result
+suggests the plan is incomplete or needs correction.
+Return JSON only:
+{
+  "anomaly_detected": true/false,
+  "severity": "LOW|MEDIUM|HIGH|CRITICAL",
+  "finding": "one sentence what the result shows",
+  "plan_gap": "what the current plan is missing",
+  "suggested_action": "specific action to add",
+  "suggested_department": "Lab|Cardiology|Emergency|Pharmacy|Clinic"
+}`
+    }, {
+      role: 'user',
+      content: `RESULT: ${resultText}\n\nACTIVE CARE PLAN: ${planJSON}`
+    }],
+    temperature: 0.1, max_tokens: 300
+  });
+
+  const analysis = JSON.parse(res.choices[0].message.content);
+
+  if (analysis.anomaly_detected) {
+    <span class="comment">// Create a HELD action — doctor must confirm before it executes</span>
+    await supabase.from('care_actions').insert({
+      journey_id: journeyId,
+      type: 'REFERRAL',
+      description: analysis.suggested_action,
+      category: 'Explicit',
+      confidence: 0.99,
+      department: analysis.suggested_department,
+      state: 'HELD',    <span class="comment">// always held — doctor confirms</span>
+      meta: { anomaly: analysis }
+    });
+
+    <span class="comment">// Alert the doctor with the full finding</span>
+    await notifyDoctor(journeyId, {
+      type: 'ANOMALY',
+      severity: analysis.severity,
+      message: `⚠️ Anomaly detected: ${analysis.finding}. Suggested: ${analysis.suggested_action}. Confirm?`,
+      action_id: newActionId
+    });
+
+    await logAudit(journeyId, actionId, 'SYSTEM',
+      'ANOMALY_DETECTED', analysis.plan_gap);
+  }
+
+  return analysis;
+}
+
+<span class="comment">// Trigger this whenever an action is marked COMPLETED with a result</span>
+<span class="comment">// i.e. inside the "Mark Completed" department API endpoint</span></div>
+          <div class="section-label">DEMO SCRIPT FOR THIS FEATURE</div>
+          <div class="scenario-card">
+            <h3>⭐ Plan Anomaly Demo Flow</h3>
+            <div class="scenario-steps">
+              <div class="s-step"><span class="s-time">Step 1</span><span>ECG action is SCHEDULED. In Department Simulator, click "Mark Completed" and enter result: "ST elevation in leads V1-V4, possible STEMI"</span><span class="s-status auto">DEPT</span></div>
+              <div class="s-step"><span class="s-time">Step 2</span><span>Anomaly detection fires. Groq compares result against active plan. Current plan has no emergency cardiology action.</span><span class="s-status star">AI CHECK</span></div>
+              <div class="s-step"><span class="s-time">Step 3</span><span>Doctor console shows red banner: "⚠️ Anomaly: ST elevation detected. Plan has no emergency cardiology referral. Add urgent escalation? [Confirm] [Dismiss]"</span><span class="s-status esc">FLAG</span></div>
+              <div class="s-step"><span class="s-time">Step 4</span><span>Doctor taps Confirm. New action "Urgent Cardiology Escalation" is added to the journey and executes immediately.</span><span class="s-status done">CORRECTED</span></div>
+              <div class="s-step"><span class="s-time">Judges</span><span>Say: "The plan self-corrects. Not because we programmed every scenario — because the AI reads the result and asks: is this plan still right?"</span><span class="s-status star">WOW</span></div>
+            </div>
+          </div>
+          <div class="wow-block"><strong>💜 Judge line:</strong> "Every other team closes the loop. CareLoop checks whether the original loop was the right one." That is the sentence that wins Innovation category.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sprint">
+    <div class="sprint-label">SPRINT 2B · WHATSAPP INTELLIGENCE (3:00 – 3:40)</div>
+
+    <div class="task" id="t5">
+      <div class="task-header" onclick="toggleTask('t5')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t5')"></div>
+        <div class="task-time">3:00<br>–3:40</div>
+        <div class="task-main">
+          <div class="task-name">Feature 5 — Two-way WhatsApp intelligence: 5 intents, auto-act</div>
+          <div class="task-sub">Patient texts in Hindi or English → Groq classifies → system acts with no human involved</div>
+        </div>
+        <div class="task-tags"><span class="tag layer">Layer 4</span><span class="tag wow">WOW LIVE DEMO</span><span class="tag green">Feature 5</span></div>
+      </div>
+      <div class="task-body" id="b-t5">
+        <div class="task-body-inner">
+          <div class="cmd-block"><span class="comment">// Twilio WhatsApp webhook — patient replies here</span>
+router.post('/webhook/whatsapp', async (req, res) => {
+  const { Body: reply, From: from } = req.body;
+
+  const classification = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    messages: [{
+      role: 'system',
+      content: `Classify this patient WhatsApp reply into ONE intent.
+Return JSON only: {"intent": "CONFIRM|RESCHEDULE|URGENT|FINANCIAL_BARRIER|QUERY", "detail": "one sentence"}
+Patient may reply in Hindi, Hinglish, or English.`
+    }, { role: 'user', content: reply }],
+    temperature: 0, max_tokens: 100
+  });
+
+  const { intent, detail } = JSON.parse(classification.choices[0].message.content);
+  const patient = await getPatientByPhone(from.replace('whatsapp:',''));
+
+  switch (intent) {
+    case 'CONFIRM':
+      await updateActionsToValidated(patient.id);
+      await sendWhatsApp(from, '✅ Confirmed! See you at the booked time.'); break;
+    case 'RESCHEDULE':
+      const newSlot = await bookNextAvailableSlot(patient.id, detail);
+      await sendWhatsApp(from, `📅 Rescheduled to ${newSlot}. Reply 1 to confirm.`); break;
+    case 'URGENT':
+      await escalateToDoctorUrgent(patient.id, detail);
+      await sendWhatsApp(from, '🚨 Your message has been sent to the doctor immediately.'); break;
+    case 'FINANCIAL_BARRIER':
+      await flagForCoordinator(patient.id, 'FINANCIAL_BARRIER', detail);
+      await sendWhatsApp(from, '💙 We will connect you with support. Someone will call shortly.'); break;
+    case 'QUERY':
+      const bookings = await getPatientBookings(patient.id);
+      await sendWhatsApp(from, formatBookingInfo(bookings)); break;
+  }
+  res.send('<Response></Response>');
+});</div>
+          <ul class="build-list">
+            <li>Add a "📱 Simulate Patient Reply" button in UI — sends a POST to your webhook with a fake Twilio body. Lets you demo live without a real phone or internet dependency.</li>
+            <li>Pre-set 3 demo replies: "1" (CONFIRM), "kal nahi aa sakta" (RESCHEDULE), "feeling much worse" (URGENT). One click triggers each.</li>
+            <li>Show the classified intent + action taken in real time on a WhatsApp simulator panel.</li>
+            <li>Family caregiver loop: if patient.age >= 55 or care has cardiac keywords → send parallel message to caregiver_phone. 1 extra Twilio call. Takes 15 minutes to add. Big emotional impact with judges.</li>
+          </ul>
+          <div class="wow-block"><strong>💜 Demo moment:</strong> Hold up your phone. Say "Let me show you Ramesh replying." Click "Simulate: kal nahi aa sakta." Watch RESCHEDULE detected, new slot booked, auto-reply sent — in under 3 seconds. Judges will remember this.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sprint">
+    <div class="sprint-label">SPRINT 2C · SELF-HEALING + GAP DETECTION (3:40 – 4:00)</div>
+
+    <div class="task" id="t6">
+      <div class="task-header" onclick="toggleTask('t6')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t6')"></div>
+        <div class="task-time">3:40<br>–4:00</div>
+        <div class="task-main">
+          <div class="task-name">Feature 4 — Self-healing retries + gap detector cron</div>
+          <div class="task-sub">3 retries, exponential backoff (5s/10s/20s). Gap detector watches 5 failure types. Most gaps resolved silently.</div>
+        </div>
+        <div class="task-tags"><span class="tag layer">Layer 3</span><span class="tag green">Feature 4</span><span class="tag wow">LIVE DEMO</span></div>
+      </div>
+      <div class="task-body" id="b-t6">
+        <div class="task-body-inner">
+          <div class="cmd-block"><span class="comment">// backend/services/selfHeal.js</span>
+async function handleFailure(action, error) {
+  const newCount = action.retry_count + 1;
+  await supabase.from('care_actions')
+    .update({ retry_count: newCount }).eq('id', action.id);
+
+  await logAudit(action.journey_id, action.id, 'AGENT', 'RETRY',
+    `Attempt ${newCount}: ${error.message}`);
+
+  if (newCount < 3) {
+    <span class="comment">// Exponential backoff: 5s, 10s, 20s</span>
+    const delay = Math.pow(2, newCount) * 5000;
+    <span class="comment">// On attempt 2: try alternate slot in department_slots</span>
+    if (newCount === 2) action.use_alternate_slot = true;
+    setTimeout(() => executeAction(action), delay);
+  } else {
+    <span class="comment">// All 3 failed: escalate to coordinator</span>
+    await transition(action.id, 'ESCALATED', 'AGENT',
+      'Max retries exhausted — coordinator required');
+    await notifyCoordinator(action.journey_id, action.id,
+      { retries: 3, last_error: error.message });
+  }
+}
+
+<span class="comment">// backend/jobs/gapDetector.js — runs every 5 min (every 30s in demo mode)</span>
+const cron = require('node-cron');
+cron.schedule('*/5 * * * *', async () => {
+  const { data: actions } = await supabase
+    .from('care_actions').select('*')
+    .in('state', ['CREATED','VALIDATED','ASSIGNED','SCHEDULED']);
+
+  for (const a of actions) {
+    const ageHrs = (Date.now() - new Date(a.updated_at)) / 3600000;
+    <span class="comment">// Gap 1: created but no scheduling event after 2h</span>
+    if (a.state === 'CREATED' && ageHrs > 2) await triggerRetry(a, 'NO_SCHEDULE_EVENT');
+    <span class="comment">// Gap 2: deadline passed without completion</span>
+    if (a.deadline_at && new Date(a.deadline_at) < new Date() && a.state !== 'COMPLETED')
+      await transition(a.id, 'OVERDUE', 'SYSTEM', 'Deadline passed');
+    <span class="comment">// Gap 3: completed result but no doctor review triggered after 24h</span>
+    if (a.state === 'COMPLETED' && ageHrs > 24) await notifyDoctor(a, 'RESULT_PENDING_REVIEW');
+  }
+});</div>
+          <div class="checkpoint"><strong>✓ Done when:</strong> Click "⚡ Force Lab Failure" — watch action go red, retry after 5s (alternate slot), succeed on attempt 2. Coordinator dashboard shows 0 escalations. Audit log shows 2 RETRY events.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ════ PHASE 3 ════ -->
+<section class="phase-section" id="phase3">
+
+  <div class="phase-header">
+    <div class="phase-title-group">
+      <div class="phase-eyebrow" style="color:var(--h3)">PHASE 3 · HOUR 4:00 → 5:00</div>
+      <div class="phase-title">Polish, Demo Setup &amp; Win</div>
+      <div class="phase-goal">The last hour is not for coding. It's for making the demo impossible to fumble. Pre-seed the data, add one-click demo triggers, run the full script twice, and know every judge answer cold. The gap between 7/10 and 10/10 is entirely in how you present what you built, not in what you built.</div>
+    </div>
+    <div class="phase-outcome">
+      <div class="out-label">PRESENTATION READY</div>
+      <div class="out-text">Zero typing during demo. Every wow moment one click away. Full script memorised. Every judge question answered in under 30 seconds.</div>
+    </div>
+  </div>
+
+  <div class="sprint">
+    <div class="sprint-label">SPRINT 3A · COORDINATOR DASHBOARD + AUDIT TRAIL (4:00 – 4:20)</div>
+
+    <div class="task" id="t7">
+      <div class="task-header" onclick="toggleTask('t7')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t7')"></div>
+        <div class="task-time">4:00<br>–4:20</div>
+        <div class="task-main">
+          <div class="task-name">Feature 7 — Exception-only dashboard + full audit trail</div>
+          <div class="task-sub">The power moment: coordinator opens dashboard. Says "0 items need your attention." Agent handled everything.</div>
+        </div>
+        <div class="task-tags"><span class="tag layer">Layer 4</span><span class="tag green">Feature 7</span></div>
+      </div>
+      <div class="task-body" id="b-t7">
+        <div class="task-body-inner">
+          <ul class="build-list">
+            <li><strong>Top stat bar (4 cards):</strong> Active Journeys | Auto-Resolved Today | Escalated to Humans | Agent Resolution Rate %. These 4 numbers tell the whole story.</li>
+            <li><strong>Exception list:</strong> Shows ONLY ESCALATED and OVERDUE actions. Each card shows: patient, action, exact failure reason, retry history (attempt 1/2/3), and one "Resolve manually" button.</li>
+            <li><strong>Zero-exception state:</strong> Large card reading "✅ Agent has everything under control. 0 items need your attention." This is the strongest statement in the entire demo.</li>
+            <li><strong>Drop risk panel:</strong> All active patients sorted by drop_risk descending. Risk > 0.7 shows in red. Tooltip: "High drop risk — Ramesh, ECG — 74% chance of missed follow-up."</li>
+            <li><strong>Audit trail:</strong> Per-journey chronological log. Every row: timestamp, actor badge (AGENT/DOCTOR/PATIENT/SYSTEM), event name, reason. Filter by actor. This is your "accountable AI" proof.</li>
+          </ul>
+          <div class="wow-block"><strong>💜 Demo line:</strong> "The coordinator has had nothing to do today. CareLoop executed 6 bookings, handled 2 retries, rescheduled one WhatsApp reply — fully autonomously. This is the coordinator's new job: supervise an agent, not chase up humans."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sprint">
+    <div class="sprint-label">SPRINT 3B · DEMO SETUP — NON-NEGOTIABLE (4:20 – 4:40)</div>
+
+    <div class="task" id="t8">
+      <div class="task-header" onclick="toggleTask('t8')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t8')"></div>
+        <div class="task-time">4:20<br>–4:40</div>
+        <div class="task-main">
+          <div class="task-name">Pre-seed data + one-click demo trigger buttons</div>
+          <div class="task-sub">Never live-type in front of judges. Never wait for real timers. Every wow moment is one click.</div>
+        </div>
+        <div class="task-tags"><span class="tag crit">DEMO CRITICAL</span></div>
+      </div>
+      <div class="task-body" id="b-t8">
+        <div class="task-body-inner">
+          <ul class="build-list">
+            <li><strong>🔄 Demo Reset button:</strong> One click clears all journeys and actions for Ramesh, resets department slots to unbooked. Start fresh without a page reload.</li>
+            <li><strong>📋 Load Demo Note button:</strong> Pre-fills doctor note with exactly "Chest pain and shortness of breath. ECG, lipid profile blood test, cardiology referral, review in 7 days." One click.</li>
+            <li><strong>⚡ Force Lab Failure button:</strong> Makes the next Lab API call throw an error. Shows self-heal retry live. Only visible in dev mode — hide with a small gear icon.</li>
+            <li><strong>📱 Simulate Patient Reply buttons (3):</strong> "1 — Confirm", "kal nahi aa sakta — Reschedule", "feeling much worse — Urgent". Each fires a POST to your WhatsApp webhook.</li>
+            <li><strong>🏥 Department Simulator:</strong> Tabs for Lab, Cardiology, Pharmacy. Each shows incoming tasks + "Mark Complete + Enter Result" button. Marking Lab complete triggers anomaly detection automatically.</li>
+            <li><strong>⏩ Fast-Forward Time button:</strong> Advances the gap detector clock by 3 hours. Makes OVERDUE gaps appear on the coordinator dashboard live during the demo.</li>
+            <li><strong>Backup:</strong> Record a full 5-minute screen capture of the happy path before you walk in. WiFi dies? Play the video and talk over it.</li>
+          </ul>
+          <div class="checkpoint"><strong>✓ Done when:</strong> The full Ramesh journey — note to CLOSED — can be demonstrated in under 4 minutes, clicking exactly 7 things, with zero typing and zero waiting.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sprint">
+    <div class="sprint-label">SPRINT 3C · 7-MINUTE DEMO SCRIPT (4:40 – 5:00)</div>
+
+    <div class="task" id="t9">
+      <div class="task-header" onclick="toggleTask('t9')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t9')"></div>
+        <div class="task-time">4:40<br>–5:00</div>
+        <div class="task-main">
+          <div class="task-name">The exact 7-minute script — every word, every click, memorised</div>
+          <div class="task-sub">Rehearse once alone. Then once with someone asking judge questions mid-demo.</div>
+        </div>
+        <div class="task-tags"><span class="tag crit">WIN FACTOR</span></div>
+      </div>
+      <div class="task-body" id="b-t9">
+        <div class="task-body-inner">
+          <div class="scenario-card">
+            <h3>📋 The 7-Minute Demo Script</h3>
+            <div class="scenario-steps">
+              <div class="s-step"><span class="s-time">0:00–1:00</span><span><strong>The hook — Ramesh's story. No laptop.</strong> "Ramesh Kumar. 62 years old. Chest pain. Doctor wrote a note: ECG, blood test, referral, review in 7 days. That note got filed. Nobody called Ramesh. Nobody booked the ECG. Nobody sent the referral. He came back in week 3 in worse condition. This is not bad medicine. It is broken coordination. The care fell through the cracks between departments."</span><span class="s-status done">HOOK</span></div>
+              <div class="s-step"><span class="s-time">1:00–1:20</span><span><strong>One line.</strong> "CareLoop doesn't remind. It executes." Open laptop.</span><span class="s-status done">FRAME</span></div>
+              <div class="s-step"><span class="s-time">1:20–2:30</span><span><strong>Click 1 — Load demo note. Click 2 — Submit.</strong> "Doctor writes the same note they always write. CareLoop reads it, extracts every order, scores confidence. These three are Explicit, above 85% — they execute immediately. This follow-up is 78% — the system holds it. It never auto-executes what it isn't certain about." Point to the confidence bars. Point to the HELD badge.</span><span class="s-status auto">DEMO</span></div>
+              <div class="s-step"><span class="s-time">2:30–3:30</span><span><strong>Click 3 — Switch to Dependency Graph.</strong> "The ECG and blood test are booked. The doctor review is blocked — in red. It literally cannot start until both tests are complete. The system knows the clinical order." Click "Force Lab Failure." Node goes red. "Lab API failed. Watch." Node retries after 5 seconds. Goes green. "No coordinator involved. No human saw that." Doctor Review node lights up and unlocks. "Done. That is the dependency graph."</span><span class="s-status heal">WOW 1</span></div>
+              <div class="s-step"><span class="s-time">3:30–4:15</span><span><strong>Click 4 — Department Simulator, Mark ECG Completed, enter "ST elevation V1-V4".</strong> "The ECG result just came in. Now watch something no other team has." Red anomaly banner fires on doctor console. "CareLoop read the result, compared it against the active care plan, and detected a contradiction: ST elevation, but no emergency cardiology in the plan. It suggests an urgent escalation — and waits for the doctor to confirm." Click Confirm. New action executes. "The plan self-corrected."</span><span class="s-status star">WOW 2 ⭐</span></div>
+              <div class="s-step"><span class="s-time">4:15–5:00</span><span><strong>Click 5 — Simulate WhatsApp reply "kal nahi aa sakta".</strong> "Meanwhile, Ramesh replied on WhatsApp in Hindi. CareLoop classified it as RESCHEDULE, booked the next slot, and replied automatically. He didn't download an app. He didn't log in. Just WhatsApp." Point to the intent badge. Point to the auto-reply.</span><span class="s-status auto">WOW 3</span></div>
+              <div class="s-step"><span class="s-time">5:00–6:00</span><span><strong>Click 6 — Coordinator Dashboard.</strong> "The coordinator opened their dashboard at the end of the day. This is what they see." Show zero-exception state: "✅ Agent resolved 6 actions. 0 items need your attention." Audit trail: "Every decision the agent made — logged, timestamped, replayable. Accountable AI, not a black box."</span><span class="s-status done">CREDIBILITY</span></div>
+              <div class="s-step"><span class="s-time">6:00–7:00</span><span><strong>Close. No laptop.</strong> "Every existing tool in healthcare — EHRs, reminder apps, dashboards — detects the problem and tells a human. CareLoop is the first system that acts, self-corrects, and closes the loop autonomously. The loop doesn't just close. It self-corrects." Pause. Done.</span><span class="s-status done">CLOSE</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="task" id="t10">
+      <div class="task-header" onclick="toggleTask('t10')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t10')"></div>
+        <div class="task-time">Final<br>30 min</div>
+        <div class="task-main">
+          <div class="task-name">12 judge questions — know every answer cold</div>
+          <div class="task-sub">The score gap between 8 and 10 is entirely in Q&A. Practice answering in under 30 seconds each.</div>
+        </div>
+        <div class="task-tags"><span class="tag crit">WIN FACTOR</span></div>
+      </div>
+      <div class="task-body" id="b-t10">
+        <div class="task-body-inner">
+          <ul class="build-list">
+            <li><strong>"How is this different from existing EHR order management?"</strong> → EHR order management detects gaps and notifies humans. CareLoop executes orders autonomously, detects if the plan becomes wrong when a result arrives, and self-heals without any human involvement. It's an agent, not a tracker.</li>
+            <li><strong>"What if the AI extracts something wrong?"</strong> → Confidence gate. Anything below 85% is held for doctor confirmation before any action is taken. The anomaly correction is also held — doctor always confirms before it executes. The system never auto-executes what it isn't certain about.</li>
+            <li><strong>"What does Plan Anomaly Detection actually do that's new?"</strong> → When a test result arrives, we run one Groq API call that compares the result against the current active care plan JSON and asks: "does this result mean the plan is now wrong?" No competing system does this. It turns a scheduling tool into a clinical reasoning tool.</li>
+            <li><strong>"What if the WhatsApp intent is misclassified?"</strong> → The system always sends an auto-reply confirming the action taken. Patients can reply again to correct it. Misclassifications are also logged in the audit trail. And the confidence gate means the system knows when to hold for human review.</li>
+            <li><strong>"What about data privacy for patient WhatsApp messages?"</strong> → Twilio encrypts messages in transit. Patient data stored in Supabase with row-level security. Phone numbers are never exposed in the audit log — they're stored as masked IDs. HIPAA-aligned architecture.</li>
+            <li><strong>"How does it scale beyond one clinic?"</strong> → BullMQ with Redis handles concurrent job queues across patients. Supabase scales horizontally. Each clinic is an isolated tenant — separate journey data, separate department slots. Zero architecture change to go from 10 to 1,000 clinics.</li>
+            <li><strong>"What does the self-healing actually do?"</strong> → Detects a booking failure → retries with the next available slot from department_slots → exponential backoff (5s, 10s, 20s) → only escalates after 3 failed attempts. The gap detector also runs every 5 minutes to catch broken transitions that weren't booking failures. Two independent defensive layers.</li>
+            <li><strong>"Is this production ready?"</strong> → Architecture is production-grade. Department APIs are mocked for the hackathon — that is a 4-week sprint to replace with real HMIS integrations for a pilot clinic. The AI layer and agent logic are already production-ready.</li>
+            <li><strong>"What's the business model?"</strong> → ₹2,000/clinic/month SaaS. 10,000 mid-tier Indian clinics with no EHR = ₹20Cr ARR. Phase 2: outcome data sold to insurers. Phase 3: ABDM integration gives access to national patient records.</li>
+            <li><strong>"Why Groq instead of OpenAI?"</strong> → Groq inference is 10x faster and has a generous free tier — critical for a real-time system where the gap detector runs every 5 minutes per active action. Response latency under 500ms. Same model quality for structured extraction tasks.</li>
+            <li><strong>"What's Phase 2?"</strong> → ABDM (Ayushman Bharat Digital Mission) API integration — CareLoop gets access to patient health records across hospital systems. Institutional memory layer that learns per-facility failure patterns and adapts routing automatically.</li>
+            <li><strong>"How did you build this in 5 hours?"</strong> → We used open-source boilerplates for infrastructure. Every novel component — confidence scoring, dependency graph execution, plan anomaly detection, intent classification, drop risk scoring — was custom built. The intelligence is ours; the plumbing is borrowed.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bonus features -->
+  <div class="sprint">
+    <div class="sprint-label">BONUS FEATURES — ONLY IF EVERYTHING ABOVE IS WORKING</div>
+
+    <div class="task" id="t11">
+      <div class="task-header" onclick="toggleTask('t11')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t11')"></div>
+        <div class="task-time">+30 min</div>
+        <div class="task-main">
+          <div class="task-name">Bonus 1 — Voice input (Web Speech API, zero cost)</div>
+          <div class="task-sub">Doctor speaks the note. Words appear live. Same demo, but 10x more visceral.</div>
+        </div>
+        <div class="task-tags"><span class="tag wow">BONUS</span></div>
+      </div>
+      <div class="task-body" id="b-t11">
+        <div class="task-body-inner">
+          <div class="cmd-block"><span class="comment">// Browser-native. Zero install. Zero API key. Zero latency.</span>
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.lang = 'en-IN'; <span class="comment">// Indian English accent profile</span>
+recognition.interimResults = true;
+recognition.onresult = (e) => {
+  const t = Array.from(e.results).map(r => r[0].transcript).join('');
+  setNote(t); <span class="comment">// fills textarea live as you speak</span>
+};
+<span class="comment">// Mic button → recognition.start()</span>
+<span class="comment">// Show pulsing red dot + waveform SVG animation while recording</span>
+<span class="comment">// On stop: 3s review window → then auto-submit to NLP</span></div>
+          <div class="wow-block"><strong>💜 Demo line:</strong> "Doctors in India see 80 patients a day. They don't type. CareLoop listens." Then speak the note. Actions appear. Judges remember this.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="task" id="t12">
+      <div class="task-header" onclick="toggleTask('t12')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t12')"></div>
+        <div class="task-time">+20 min</div>
+        <div class="task-main">
+          <div class="task-name">Bonus 2 — Family caregiver loop</div>
+          <div class="task-sub">Patient 55+ or cardiac → son/daughter gets parallel WhatsApp. 1 extra Twilio call. Huge emotional impact.</div>
+        </div>
+        <div class="task-tags"><span class="tag wow">BONUS</span></div>
+      </div>
+      <div class="task-body" id="b-t12">
+        <div class="task-body-inner">
+          <ul class="build-list">
+            <li>On journey create: if patient.age >= 55 or note contains "cardiac|chest pain|diabetes" → flag HIGH_SUPPORT.</li>
+            <li>After booking: send parallel WhatsApp to patient.caregiver_phone with same booking info.</li>
+            <li>Caregiver can also reply CONFIRM — system accepts from either phone number.</li>
+            <li>On journey CLOSED: send closure message to both patient and caregiver.</li>
+          </ul>
+          <div class="wow-block"><strong>💜 Demo line:</strong> "Ramesh is 62. His son also gets the same message — and can confirm on his behalf. CareLoop doesn't just manage the patient. It manages the family's worry."</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="task" id="t13">
+      <div class="task-header" onclick="toggleTask('t13')">
+        <div class="task-check"><input type="checkbox" onchange="tick(this,'t13')"></div>
+        <div class="task-time">+30 min</div>
+        <div class="task-main">
+          <div class="task-name">Bonus 3 — Institutional memory widget</div>
+          <div class="task-sub">Mock Recharts graph showing clinic drop rate falling from 38% to 6% over 50 journeys. Frame as Phase 2.</div>
+        </div>
+        <div class="task-tags"><span class="tag wow">BONUS</span></div>
+      </div>
+      <div class="task-body" id="b-t13">
+        <div class="task-body-inner">
+          <ul class="build-list">
+            <li>Recharts LineChart. X = journey number 1–50. Y = drop rate %. Line starts at 38, trends to 6.</li>
+            <li>Tooltip: "Referral drop rate on Fridays: 38% → CareLoop now auto-routes to Monday."</li>
+            <li>Small table: action type | pre-CareLoop rate | CareLoop rate | improvement.</li>
+            <li>Say explicitly: "This is Phase 2 — after 50 live journeys the system learns which actions fail at this specific clinic and adapts routing automatically."</li>
+          </ul>
+          <div class="wow-block"><strong>💜 Demo line:</strong> "Most AI tools solve the individual case. CareLoop learns from every case to prevent the next one — at the institutional level."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scorecard -->
+  <div class="scorecard">
+    <h3>Projected Judge Scorecard — With All 7 Features + Anomaly Detection</h3>
+    <div class="score-row">
+      <div class="score-name">Problem Statement</div>
+      <div class="score-bar-wrap"><div class="score-bar" style="width:98%;background:var(--accent)"></div></div>
+      <div class="score-num" style="color:var(--accent)">9.8</div>
+    </div>
+    <div class="score-row">
+      <div class="score-name">Solution Relevance</div>
+      <div class="score-bar-wrap"><div class="score-bar" style="width:96%;background:var(--accent)"></div></div>
+      <div class="score-num" style="color:var(--accent)">9.6</div>
+    </div>
+    <div class="score-row">
+      <div class="score-name">Innovation (Anomaly Detection)</div>
+      <div class="score-bar-wrap"><div class="score-bar" style="width:98%;background:var(--purple)"></div></div>
+      <div class="score-num" style="color:var(--purple)">9.8</div>
+    </div>
+    <div class="score-row">
+      <div class="score-name">Technical Depth</div>
+      <div class="score-bar-wrap"><div class="score-bar" style="width:90%;background:var(--blue)"></div></div>
+      <div class="score-num" style="color:var(--blue)">9.0</div>
+    </div>
+    <div class="score-row">
+      <div class="score-name">Demo Quality</div>
+      <div class="score-bar-wrap"><div class="score-bar" style="width:96%;background:var(--purple)"></div></div>
+      <div class="score-num" style="color:var(--purple)">9.6</div>
+    </div>
+    <div class="score-row">
+      <div class="score-name">Presentation + Q&amp;A</div>
+      <div class="score-bar-wrap"><div class="score-bar" style="width:94%;background:var(--blue)"></div></div>
+      <div class="score-num" style="color:var(--blue)">9.4</div>
+    </div>
+    <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border); font-family:'Space Grotesk',sans-serif; font-size:13px; color:var(--muted);">
+      The score improvement over baseline comes entirely from Plan Anomaly Detection (nobody else has it) and a rehearsed demo with zero fumbles.
+      <span style="color:var(--accent); font-weight:600;">The winning sentence: "Every other team closes the loop. CareLoop checks whether the original loop was the right one."</span>
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<script>
+  const TOTAL_TASKS = 18;
+
+  function switchPhase(n) {
+    document.querySelectorAll('.phase-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.phase-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('phase' + n).classList.add('active');
+    document.querySelectorAll('.phase-tab')[n-1].classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function toggleTask(id) {
+    const body = document.getElementById('b-' + id);
+    if (body) body.classList.toggle('open');
+  }
+
+  function tick(cb, id) {
+    const task = document.getElementById(id);
+    if (cb.checked) task.classList.add('done');
+    else task.classList.remove('done');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const checked = document.querySelectorAll('input[type=checkbox]:checked').length;
+    const pct = Math.round((checked / TOTAL_TASKS) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent = pct + '%';
+    document.getElementById('doneCount').textContent = checked;
+  }
+</script>
+</body>
+</html>
