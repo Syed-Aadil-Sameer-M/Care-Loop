@@ -1,0 +1,14 @@
+BASE_URL: http://localhost:3001
+
+POST   /api/journeys              → create journey + trigger extraction
+GET    /api/journeys/:id          → get journey with all actions
+POST   /api/journeys/:id/actions  → manually add action
+PATCH  /api/actions/:id/state     → transition state
+POST   /api/actions/:id/complete  → mark complete + trigger anomaly
+GET    /api/audit/:journeyId      → full audit trail
+POST   /api/mock/lab/book         → mock lab booking
+POST   /api/mock/referral/send    → mock referral
+POST   /api/mock/pharmacy/log     → mock pharmacy
+POST   /api/mock/clinic/book      → mock clinic slot
+GET    /api/patients              → list patients
+GET    /api/slots/:department     → available slots
