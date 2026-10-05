@@ -1,4 +1,3 @@
-```javascript
 /*
  * ============================================================
  * SUDARSHAN — DEPARTMENT SIMULATOR CONTRACT
@@ -157,7 +156,7 @@
  *
  * ============================================================
  */
-```
+
 
 // routes/mock.js
 
@@ -165,7 +164,7 @@ const express = require('express');
 
 const router = express.Router();
 
-const supabase = require('../supabase');
+const supabase = require('../superbase');
 const { transition } = require('../services/stateMachine');
 const { unblockDependents } = require('../services/executor');
 const { checkPlanAnomaly } = require('../services/anomaly');

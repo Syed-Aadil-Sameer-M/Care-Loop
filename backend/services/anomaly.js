@@ -1,5 +1,5 @@
 const { detectAnomaly } = require('./groq');
-const supabase = require('../supabase');
+const supabase = require('../superbase');
 
 /*
  * ============================================================

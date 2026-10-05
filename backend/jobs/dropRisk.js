@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const supabase = require('../supabase');
+const supabase = require('../superbase');
 
 // Run every hour
 cron.schedule(

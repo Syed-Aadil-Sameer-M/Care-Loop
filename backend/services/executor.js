@@ -1,4 +1,4 @@
-const supabase = require('../supabase');
+const supabase = require('../superbase');
 const { transition } = require('./stateMachine');
 const { selfHeal } = require('./selfHeal');
 

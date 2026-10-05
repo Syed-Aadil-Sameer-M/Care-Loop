@@ -1,4 +1,4 @@
-```javascript
+
 /*
  * ============================================================
  * PATIENT ROUTE OWNERSHIP
@@ -53,12 +53,12 @@
  *
  * ============================================================
  */
-```
+
 
 const express = require('express');
 
 const router = express.Router();
-const supabase = require('../supabase');
+const supabase = require('../superbase');
 
 /**
  * Validate UUID before sending it to Supabase.
