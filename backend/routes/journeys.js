@@ -2,12 +2,14 @@ const express = require('express');
 
 const router = express.Router();
 
-const supabase = require('../supabase');
+const supabase = require('../superbase');
 const { transition } = require('../services/stateMachine');
 const { extractCareActions } = require('../services/groq');
 const { executeAction } = require('../services/executor');
-
-const CONFIDENCE_THRESHOLD = 0.85;
+const {
+    getConfidenceTargetState,
+    getExecutableActions
+} = require('../services/confidenceGate');
 
 // POST /api/journeys
 // Doctor submits a clinical note
@@ -107,21 +109,18 @@ router.post('/', async (req, res) => {
             // 5. Apply confidence gate through state machine
             // -------------------------------------------------------
 
-            const targetState =
-                action.confidence >= CONFIDENCE_THRESHOLD
-                    ? 'VALIDATED'
-                    : 'HELD';
+            const targetState = getConfidenceTargetState(action.confidence);
 
             const transitioned = await transition(
                 saved.id,
                 targetState,
                 'SYSTEM',
-                `Confidence ${action.confidence} ${action.confidence >= CONFIDENCE_THRESHOLD
+                `Confidence ${action.confidence} ${targetState === 'VALIDATED'
                     ? 'meets'
                     : 'does not meet'
-                } threshold ${CONFIDENCE_THRESHOLD}`,
+                } threshold 0.85`,
                 {
-                    confidence_threshold: CONFIDENCE_THRESHOLD
+                    confidence_threshold: 0.85
                 }
             );
 
@@ -179,9 +178,7 @@ router.post('/', async (req, res) => {
         // 7. Execute validated actions asynchronously
         // ---------------------------------------------------------
 
-        const validatedActions = savedActions.filter(
-            (action) => action.state === 'VALIDATED'
-        );
+        const validatedActions = getExecutableActions(savedActions);
 
         for (const action of validatedActions) {
             executeAction(action).catch((error) => {

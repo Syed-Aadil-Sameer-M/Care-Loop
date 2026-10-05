@@ -355,6 +355,5 @@ Return JSON with:
 module.exports = {
     groq,
     extractCareActions,
-    detectAnomaly,
-    analyzeFailure
+    detectAnomaly
 };
