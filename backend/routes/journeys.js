@@ -119,10 +119,7 @@ router.post('/', async (req, res) => {
                 `Confidence ${action.confidence} ${action.confidence >= CONFIDENCE_THRESHOLD
                     ? 'meets'
                     : 'does not meet'
-                } threshold ${CONFIDENCE_THRESHOLD}`,
-                {
-                    confidence_threshold: CONFIDENCE_THRESHOLD
-                }
+                } threshold ${CONFIDENCE_THRESHOLD}`
             );
 
             if (!transitioned) {
