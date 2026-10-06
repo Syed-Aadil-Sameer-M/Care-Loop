@@ -50,7 +50,7 @@
 const express = require('express');
 
 const router = express.Router();
-const supabase = require('../supabase');
+const supabase = require('../superbase');
 
 const MAX_LIMIT = 200;
 
