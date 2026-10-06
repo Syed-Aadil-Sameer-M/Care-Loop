@@ -20,6 +20,7 @@ import { StatusBadge } from '../components/common/StatusBadge'
 import { useJourneyActionRecords } from '../hooks/useJourneyActionRecords'
 import type { JourneyActionRecord } from '../hooks/useJourneyActionRecords'
 import { CoordinatorDemoControls } from '../components/coordinator/CoordinatorDemoControls'
+import { InstitutionalMemory } from '../components/coordinator/InstitutionalMemory'
 
 const exceptionStates = new Set(['HELD', 'BLOCKED', 'OVERDUE', 'ESCALATED'])
 const resolvedStates = new Set(['COMPLETED', 'VERIFIED'])
@@ -365,6 +366,11 @@ export function CoordinatorDashboard() {
       <DropRiskPanel records={actionRecords} />
 
       <div className="coordinator-grid coordinator-grid--support">
+      <DropRiskPanel records={actionRecords} />
+
+<InstitutionalMemory />
+
+<div className="coordinator-grid coordinator-grid--support"></div>
         <AuditTrailExplorer />
         <AgentActivityFeed />
       </div>
