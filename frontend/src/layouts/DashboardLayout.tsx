@@ -4,6 +4,8 @@ import {
   HeartPulse,
   Menu,
   MessageCircle,
+  PanelLeftClose,
+  PanelLeftOpen,
   PanelsTopLeft,
   Radio,
   Stethoscope,
@@ -29,11 +31,12 @@ const pageTitles: Record<string, string> = {
 
 export function DashboardLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const location = useLocation()
   const title = pageTitles[location.pathname] ?? 'CareLoop'
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isCollapsed ? ' app-shell--sidebar-collapsed' : ''}`}>
       {menuOpen && (
         <button
           className="sidebar-backdrop"
@@ -41,7 +44,9 @@ export function DashboardLayout() {
           onClick={() => setMenuOpen(false)}
         />
       )}
-      <aside className={`sidebar ${menuOpen ? 'sidebar--open' : ''}`}>
+      <aside
+        className={`sidebar${menuOpen ? ' sidebar--open' : ''}${isCollapsed ? ' sidebar--collapsed' : ''}`}
+      >
         <div className="brand">
           <div className="brand__mark" aria-hidden="true">
             <HeartPulse size={21} strokeWidth={2.2} />
@@ -52,6 +57,7 @@ export function DashboardLayout() {
           </div>
           <button
             className="icon-button sidebar__close"
+            type="button"
             aria-label="Close navigation menu"
             onClick={() => setMenuOpen(false)}
           >
@@ -60,11 +66,17 @@ export function DashboardLayout() {
         </div>
 
         <div className="sidebar__section-label">WORKSPACE</div>
-        <nav className="sidebar__nav" aria-label="Main navigation">
+        <nav
+          className="sidebar__nav"
+          id="primary-navigation"
+          aria-label="Main navigation"
+        >
           {navigation.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
+              aria-label={label}
+              title={isCollapsed ? label : undefined}
               onClick={() => setMenuOpen(false)}
               className={({ isActive }) =>
                 `nav-link${isActive ? ' nav-link--active' : ''}`
@@ -99,7 +111,7 @@ export function DashboardLayout() {
         </div>
         <div className="sidebar__footer">
           <span className="sidebar__footer-dot" />
-          Frontend foundation
+          <span>Frontend foundation</span>
         </div>
       </aside>
 
@@ -114,7 +126,22 @@ export function DashboardLayout() {
             <Menu size={20} />
           </button>
           <div className="topbar__crumb">
-            <span>CareLoop</span>
+            <button
+              className="icon-button sidebar__collapse topbar__collapse"
+              type="button"
+              aria-label={isCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+              aria-controls="primary-navigation"
+              aria-expanded={!isCollapsed}
+              title={isCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+              onClick={() => setIsCollapsed((collapsed) => !collapsed)}
+            >
+              {isCollapsed ? (
+                <PanelLeftOpen size={17} aria-hidden="true" />
+              ) : (
+                <PanelLeftClose size={17} aria-hidden="true" />
+              )}
+            </button>
+            <span className="topbar__product">CareLoop</span>
             <span className="topbar__separator">/</span>
             <strong>{title}</strong>
           </div>
@@ -129,7 +156,9 @@ export function DashboardLayout() {
           </div>
         </header>
         <main className="page-content">
-          <Outlet />
+          <div className="route-transition" key={location.pathname}>
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

@@ -11,6 +11,7 @@ import {
 import { useMemo, useState, type KeyboardEvent } from 'react'
 import { CoordinatorDemoControls } from '../components/coordinator/CoordinatorDemoControls'
 import { Badge } from '../components/common/Badge'
+import { AnimatedMetric } from '../components/common/AnimatedMetric'
 import { Button } from '../components/common/Button'
 import { Card } from '../components/common/Card'
 import { EmptyState } from '../components/common/EmptyState'
@@ -188,7 +189,7 @@ export function DepartmentSimulator() {
               </span>
               <span className="stat-card__label">{title}</span>
             </div>
-            <div className="stat-card__value">{value}</div>
+            <AnimatedMetric className="stat-card__value" value={value} />
             <div className="stat-card__foot">{foot}</div>
           </Card>
         ))}

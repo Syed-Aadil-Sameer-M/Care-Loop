@@ -2,9 +2,9 @@ export type StatusBadgeTone = 'neutral' | 'teal' | 'amber' | 'red' | 'blue'
 
 const stateTones: Record<string, StatusBadgeTone> = {
   CREATED: 'neutral',
-  VALIDATED: 'blue',
+  VALIDATED: 'teal',
   HELD: 'amber',
-  BLOCKED: 'amber',
+  BLOCKED: 'red',
   ASSIGNED: 'blue',
   SCHEDULED: 'blue',
   IN_PROGRESS: 'blue',

@@ -17,9 +17,11 @@ import { Card } from '../components/common/Card'
 import { EmptyState } from '../components/common/EmptyState'
 import { ErrorState } from '../components/common/ErrorState'
 import { StatusBadge } from '../components/common/StatusBadge'
+import { AnimatedMetric } from '../components/common/AnimatedMetric'
 import { useJourneyActionRecords } from '../hooks/useJourneyActionRecords'
 import type { JourneyActionRecord } from '../hooks/useJourneyActionRecords'
 import { CoordinatorDemoControls } from '../components/coordinator/CoordinatorDemoControls'
+import { getStatusBadgeTone } from '../utils/actionState'
 
 const exceptionStates = new Set(['HELD', 'BLOCKED', 'OVERDUE', 'ESCALATED'])
 const resolvedStates = new Set(['COMPLETED', 'VERIFIED'])
@@ -136,6 +138,16 @@ export function CoordinatorDashboard() {
         }),
     [actionRecords],
   )
+  const stateDistribution = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const { action } of actionRecords) {
+      counts.set(action.state, (counts.get(action.state) ?? 0) + 1)
+    }
+    return [...counts.entries()].sort(
+      ([leftState, leftCount], [rightState, rightCount]) =>
+        rightCount - leftCount || leftState.localeCompare(rightState),
+    )
+  }, [actionRecords])
 
   const metrics = useMemo(() => {
     const progressing = actionRecords.filter(({ action }) =>
@@ -186,7 +198,7 @@ export function CoordinatorDashboard() {
         <div>
           <div className="eyebrow">OVERSIGHT & EXCEPTIONS</div>
           <h1>Coordinator Dashboard</h1>
-          <p>CareLoop is monitoring active care journeys.</p>
+          <p>Backend-reported journey and action status for coordinator review.</p>
         </div>
         <Button
           type="button"
@@ -245,13 +257,49 @@ export function CoordinatorDashboard() {
                   </span>
                   <span className="stat-card__label">{title}</span>
                 </div>
-                <div className="stat-card__value">
-                  {value}
-                </div>
+                <AnimatedMetric className="stat-card__value" value={value} />
                 <div className="stat-card__foot">{foot}</div>
               </Card>
             ))}
           </div>
+
+          <Card
+            className="state-distribution-card"
+            title="Action state distribution"
+            description="Current states returned by the journey APIs."
+          >
+            {stateDistribution.length === 0 ? (
+              <p className="state-distribution__empty">
+                No action states were returned for the available journeys.
+              </p>
+            ) : (
+              <>
+                <div
+                  className="state-distribution__bar"
+                  role="img"
+                  aria-label={`Action state distribution: ${stateDistribution
+                    .map(([state, count]) => `${state.replaceAll('_', ' ')} ${count}`)
+                    .join(', ')}`}
+                >
+                  {stateDistribution.map(([state, count]) => (
+                    <span
+                      key={state}
+                      className={`state-distribution__segment state-distribution__segment--${getStatusBadgeTone(state)}`}
+                      style={{ flexGrow: count }}
+                    />
+                  ))}
+                </div>
+                <ul className="state-distribution__list" aria-label="Action counts by state">
+                  {stateDistribution.map(([state, count]) => (
+                    <li key={state}>
+                      <StatusBadge state={state} />
+                      <strong>{count}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </Card>
 
           {exceptions.length === 0 ? (
             <section
