@@ -4,10 +4,10 @@
  * ============================================================
  *
  * This file exposes the MOCK department APIs used by the
- * Department Simulator UI and Feature 5 Patient Reply Simulator.
+ * Department Simulator UI.
  *
  * IMPORTANT:
- * This file simulates external department systems and patient replies.
+ * This file simulates external department systems.
  * It must NOT contain workflow/state-machine logic that belongs
  * in services/stateMachine.js or services/executor.js.
  * ============================================================
@@ -20,7 +20,6 @@ const supabase = require('../superbase');
 const { transition } = require('../services/stateMachine');
 const { unblockDependents } = require('../services/executor');
 const { checkPlanAnomaly } = require('../services/anomaly');
-const { sendFamilyCaregiverAlert } = require('../services/twilio');
 
 const DEMO_MODE = process.env.DEMO_MODE === 'true';
 
@@ -147,89 +146,6 @@ async function bookSlot(department, actionId) {
 
 /**
  * ------------------------------------------------------------
- * FEATURE 5: PATIENT REPLY SIMULATION
- * ------------------------------------------------------------
- *
- * POST /api/mock/simulate-reply
- * Body: { actionId: "uuid", intent: "CONFIRM" | "RESCHEDULE" | "URGENT" }
- */
-
-/**
- * GET /api/mock/simulate-reply
- * Browser helper endpoint
- */
-router.get('/simulate-reply', (req, res) => {
-  res.json({
-    status: 'active',
-    message: 'Patient reply simulator endpoint is active. Submit a POST request with { actionId, intent } to simulate a reply.'
-  });
-});
-
-router.post('/simulate-reply', async (req, res) => {
-    try {
-        const { actionId, intent } = req.body;
-
-        if (!actionId || !intent) {
-            return res.status(400).json({
-                success: false,
-                error: 'actionId and intent are required'
-            });
-        }
-
-        if (!isValidUUID(actionId)) {
-            return res.status(400).json({
-                success: false,
-                error: 'Invalid action ID'
-            });
-        }
-
-        console.log(`[Simulator] Processing patient simulated reply: "${intent}" for action ${actionId}`);
-
-        let newState = 'COMPLETED';
-        let reason = `Simulated patient response: ${intent}`;
-
-        if (intent === 'URGENT') {
-            newState = 'ESCALATED';
-            reason = 'Patient selected URGENT via simulator UI';
-        } else if (intent === 'RESCHEDULE') {
-            newState = 'ESCALATED';
-            reason = 'Patient requested appointment reschedule via simulator UI';
-        }
-
-        // 1. Centralized transition via stateMachine
-        const updatedAction = await transition(actionId, newState, 'Patient', reason, { intent });
-
-        if (!updatedAction) {
-            return res.status(409).json({
-                success: false,
-                error: `Unable to transition action ${actionId} to ${newState}`
-            });
-        }
-
-        // 2. Trigger Bonus 2 Parallel Family Caregiver Alert on URGENT
-        if (intent === 'URGENT' && updatedAction.patient_id) {
-            await sendFamilyCaregiverAlert(
-                updatedAction.patient_id,
-                `Urgent alert triggered via patient reply simulator for action: ${actionId}`
-            );
-        }
-
-        return res.json({
-            success: true,
-            message: `Simulated ${intent} reply processed successfully`,
-            action: updatedAction
-        });
-    } catch (err) {
-        console.error('[Simulator Error]', err);
-        return res.status(500).json({
-            success: false,
-            error: err.message
-        });
-    }
-});
-
-/**
- * ------------------------------------------------------------
  * BOOKING ENDPOINTS
  * ------------------------------------------------------------
  */
@@ -237,7 +153,9 @@ router.post('/simulate-reply', async (req, res) => {
 router.post('/lab/book', async (req, res) => {
     try {
         const { action_id } = req.body;
+
         const result = await bookSlot('Lab', action_id);
+
         return res.json({
             success: true,
             department: 'Lab',
@@ -245,6 +163,7 @@ router.post('/lab/book', async (req, res) => {
         });
     } catch (error) {
         console.error('Mock Lab booking failed:', error);
+
         return res.status(500).json({
             success: false,
             error: error.message
@@ -255,7 +174,9 @@ router.post('/lab/book', async (req, res) => {
 router.post('/referral/send', async (req, res) => {
     try {
         const { action_id } = req.body;
+
         const result = await bookSlot('Cardiology', action_id);
+
         return res.json({
             success: true,
             department: 'Cardiology',
@@ -263,6 +184,7 @@ router.post('/referral/send', async (req, res) => {
         });
     } catch (error) {
         console.error('Mock Cardiology referral failed:', error);
+
         return res.status(500).json({
             success: false,
             error: error.message
@@ -273,7 +195,9 @@ router.post('/referral/send', async (req, res) => {
 router.post('/pharmacy/log', async (req, res) => {
     try {
         const { action_id } = req.body;
+
         const result = await bookSlot('Pharmacy', action_id);
+
         return res.json({
             success: true,
             department: 'Pharmacy',
@@ -281,6 +205,7 @@ router.post('/pharmacy/log', async (req, res) => {
         });
     } catch (error) {
         console.error('Mock Pharmacy booking failed:', error);
+
         return res.status(500).json({
             success: false,
             error: error.message
@@ -291,7 +216,9 @@ router.post('/pharmacy/log', async (req, res) => {
 router.post('/clinic/book', async (req, res) => {
     try {
         const { action_id } = req.body;
+
         const result = await bookSlot('Clinic', action_id);
+
         return res.json({
             success: true,
             department: 'Clinic',
@@ -299,6 +226,7 @@ router.post('/clinic/book', async (req, res) => {
         });
     } catch (error) {
         console.error('Mock Clinic booking failed:', error);
+
         return res.status(500).json({
             success: false,
             error: error.message
@@ -324,7 +252,10 @@ router.post('/complete/:actionId', async (req, res) => {
             });
         }
 
-        if (typeof result_text !== 'string' || result_text.trim().length === 0) {
+        if (
+            typeof result_text !== 'string' ||
+            result_text.trim().length === 0
+        ) {
             return res.status(400).json({
                 success: false,
                 error: 'result_text is required'
@@ -334,7 +265,10 @@ router.post('/complete/:actionId', async (req, res) => {
         const action = await getAction(actionId);
 
         // Idempotency check
-        if (action.state === 'COMPLETED' || action.state === 'VERIFIED') {
+        if (
+            action.state === 'COMPLETED' ||
+            action.state === 'VERIFIED'
+        ) {
             return res.json({
                 success: true,
                 already_completed: true,
@@ -347,7 +281,9 @@ router.post('/complete/:actionId', async (req, res) => {
         if (!['SCHEDULED', 'IN_PROGRESS'].includes(action.state)) {
             return res.status(409).json({
                 success: false,
-                error: `Action cannot be completed from state ${action.state}. Expected SCHEDULED or IN_PROGRESS.`
+                error:
+                    `Action cannot be completed from state ${action.state}. ` +
+                    `Expected SCHEDULED or IN_PROGRESS.`
             });
         }
 
@@ -363,7 +299,9 @@ router.post('/complete/:actionId', async (req, res) => {
             if (!started) {
                 return res.status(409).json({
                     success: false,
-                    error: `Unable to transition action ${actionId} to IN_PROGRESS`
+                    error:
+                        `Unable to transition action ${actionId} ` +
+                        `to IN_PROGRESS`
                 });
             }
         }
@@ -374,7 +312,9 @@ router.post('/complete/:actionId', async (req, res) => {
             'COMPLETED',
             'Department',
             'Result entered by department',
-            { result_text: result_text.trim() }
+            {
+                result_text: result_text.trim()
+            }
         );
 
         if (!completed) {
@@ -388,19 +328,27 @@ router.post('/complete/:actionId', async (req, res) => {
         try {
             await unblockDependents(actionId);
         } catch (dependencyError) {
-            console.error(`Failed to unblock dependents for ${actionId}:`, dependencyError);
+            console.error(
+                `Failed to unblock dependents for ${actionId}:`,
+                dependencyError
+            );
         }
 
         // ANOMALY DETECTION (Async)
         let anomalyCheckTriggered = false;
+
         if (result_text.trim()) {
             anomalyCheckTriggered = true;
+
             checkPlanAnomaly(
                 action.journey_id,
                 actionId,
                 result_text.trim()
             ).catch((error) => {
-                console.error(`Anomaly detection failed for action ${actionId}:`, error);
+                console.error(
+                    `Anomaly detection failed for action ${actionId}:`,
+                    error
+                );
             });
         }
 
@@ -413,6 +361,7 @@ router.post('/complete/:actionId', async (req, res) => {
         });
     } catch (error) {
         console.error('Mock action completion failed:', error);
+
         return res.status(500).json({
             success: false,
             error: error.message
@@ -438,7 +387,8 @@ router.post('/force-failure', (req, res) => {
 
     return res.json({
         success: true,
-        message: 'Next Lab booking will fail once for the self-healing demo'
+        message:
+            'Next Lab booking will fail once for the self-healing demo'
     });
 });
 
