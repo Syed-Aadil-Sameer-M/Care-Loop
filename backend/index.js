@@ -15,6 +15,7 @@ app.use('/api/actions', require('./routes/actions'));
 app.use('/api/audit', require('./routes/audit'));
 app.use('/api/mock', require('./routes/mock'));
 app.use('/api/slots', require('./routes/slots'));
+app.use('/api/patient-chat', require('./routes/patientChat'));
 
 // Health check — team hits this to confirm server is up
 app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
