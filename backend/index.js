@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
 
@@ -24,7 +25,6 @@ mountRouter('/api/audit', './routes/audit');
 mountRouter('/api/mock', './routes/mock');
 mountRouter('/api/slots', './routes/slots');
 
-// Health check — team hits this to confirm server is up
 app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
 require('./jobs/gapDetector');
