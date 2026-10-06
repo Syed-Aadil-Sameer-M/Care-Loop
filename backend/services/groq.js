@@ -252,10 +252,14 @@ Compare the planned care action data with the reported result.
 
 Identify only meaningful inconsistencies or unexpected results.
 
-Return JSON with:
+Return JSON with exactly these fields:
+
 - anomaly_detected: boolean
+- finding: string
 - reason: string
 - severity: LOW, MEDIUM, HIGH, or NONE
+- suggested_action: string
+- suggested_department: Lab, Cardiology, Pharmacy, Clinic, or Emergency
         `.trim()
             },
             {
