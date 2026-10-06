@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const supabase = require('../supabase');
+const supabase = require('../superbase');
 const { transition } = require('../services/stateMachine');
 
 // Every 30 seconds in demo mode, every 5 minutes in production

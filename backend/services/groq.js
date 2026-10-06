@@ -356,9 +356,16 @@ Return JSON with exactly these fields:
  * ============================================================
  */
 
+async function analyzeFailure(actionDetails) {
+  return {
+    reason: "Service execution failed",
+    recommendation: "Retry action or escalate to coordinator"
+  };
+}
+
 module.exports = {
     groq,
     extractCareActions,
     detectAnomaly,
-    analyzeFailure
+   // analyzeFailure
 };

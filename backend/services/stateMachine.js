@@ -1,4 +1,5 @@
-const supabase = require('../supabase');
+const supabase = require('../superbase');
+const { checkAndUnblockDependents } = require('./dependency');
 
 /*
  * ============================================================
@@ -15,6 +16,7 @@ const supabase = require('../supabase');
  *   - Validate whether a state transition is allowed
  *   - Update the action state
  *   - Record every transition in audit_log
+ *   - Check and unblock downstream dependencies on completion
  *
  * ============================================================
  */
@@ -46,7 +48,8 @@ const VALID_TRANSITIONS = {
     ],
 
     BLOCKED: [
-        'VALIDATED'
+        'VALIDATED',
+        'ASSIGNED'
     ],
 
     SCHEDULED: [
@@ -235,7 +238,20 @@ async function transition(
 
 
     // --------------------------------------------------------
-    // 6. Return updated action
+    // 6. Check and unblock downstream dependencies (Feature 2)
+    // --------------------------------------------------------
+    if (['COMPLETED', 'VERIFIED'].includes(newState)) {
+        try {
+            console.log(`[StateMachine] Action ${actionId} reached ${newState}. Triggering dependency resolver...`);
+            await checkAndUnblockDependents(actionId);
+        } catch (depErr) {
+            console.error(`[StateMachine] Dependency unblock error for action ${actionId}:`, depErr);
+        }
+    }
+
+
+    // --------------------------------------------------------
+    // 7. Return updated action
     // --------------------------------------------------------
 
     return updated;

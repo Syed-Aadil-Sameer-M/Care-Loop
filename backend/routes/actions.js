@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const supabase = require('../supabase');
+const supabase = require('../superbase');
 const { transition } = require('../services/stateMachine');
 const { executeAction } = require('../services/executor');
 
