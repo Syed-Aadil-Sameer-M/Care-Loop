@@ -363,7 +363,7 @@ export function CoordinatorDashboard() {
         </>
       )}
 
-      <DropRiskPanel records={actionRecords} />
+      
 
       <div className="coordinator-grid coordinator-grid--support">
       <DropRiskPanel records={actionRecords} />
