@@ -70,7 +70,7 @@ export function useVoiceInput(onFinalTranscript: (text: string) => void) {
       const recognition = new Recognition()
       recognition.continuous = true
       recognition.interimResults = true
-      recognition.lang = 'en-US'
+      recognition.lang = 'en-IN'
       recognition.onresult = (event) => {
         let interim = ''
         let finalText = ''
