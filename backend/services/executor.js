@@ -1,6 +1,6 @@
 const supabase = require('../superbase');
 const { transition } = require('./stateMachine');
-const { selfHeal } = require('./selfHeal');
+const { selfHeal } = require('./selfheal');
 
 async function executeAction(action) {
     // Check dependencies first

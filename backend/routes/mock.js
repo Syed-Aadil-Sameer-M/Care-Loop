@@ -269,12 +269,30 @@ router.post('/complete/:actionId', async (req, res) => {
             action.state === 'COMPLETED' ||
             action.state === 'VERIFIED'
         ) {
+            const persistedResult = action.result_text?.trim();
+
+            if (!persistedResult || persistedResult !== result_text.trim()) {
+                return res.status(409).json({
+                    success: false,
+                    error:
+                        `Action ${actionId} is already completed with a different or missing result`
+                });
+            }
+
+            const anomalyAnalysis = await checkPlanAnomaly(
+                action.journey_id,
+                actionId,
+                persistedResult
+            );
+
             return res.json({
                 success: true,
                 already_completed: true,
                 action_id: actionId,
                 state: action.state,
-                result_text: action.result_text
+                result_text: persistedResult,
+                anomaly_check_triggered: true,
+                anomaly_analysis: anomalyAnalysis
             });
         }
 
@@ -334,30 +352,22 @@ router.post('/complete/:actionId', async (req, res) => {
             );
         }
 
-        // ANOMALY DETECTION (Async)
-        let anomalyCheckTriggered = false;
-
-        if (result_text.trim()) {
-            anomalyCheckTriggered = true;
-
-            checkPlanAnomaly(
+        // Analyze only after the result is persisted by the completion transition.
+        const anomalyAnalysis = result_text.trim()
+            ? await checkPlanAnomaly(
                 action.journey_id,
                 actionId,
                 result_text.trim()
-            ).catch((error) => {
-                console.error(
-                    `Anomaly detection failed for action ${actionId}:`,
-                    error
-                );
-            });
-        }
+            )
+            : null;
 
         return res.json({
             success: true,
             action_id: actionId,
             state: 'COMPLETED',
             result_text: result_text.trim(),
-            anomaly_check_triggered: anomalyCheckTriggered
+            anomaly_check_triggered: anomalyAnalysis !== null,
+            anomaly_analysis: anomalyAnalysis
         });
     } catch (error) {
         console.error('Mock action completion failed:', error);

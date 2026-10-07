@@ -1,6 +1,6 @@
 const supabase = require('../superbase');
 const { transition } = require('./stateMachine');
-const { analyzeFailure } = require('./groq');
+const { analyzeFailure, sanitizeErrorMessage } = require('./groq');
 
 const MAX_RETRIES = 3;
 
@@ -9,6 +9,7 @@ async function selfHeal(action, error) {
         throw new Error('selfHeal requires a valid action');
     }
 
+    const safeErrorMessage = sanitizeErrorMessage(error);
     const newCount = (action.retry_count || 0) + 1;
 
     // ---------------------------------------------------------
@@ -18,17 +19,16 @@ async function selfHeal(action, error) {
 
     try {
         failureAnalysis = await analyzeFailure(action, error);
-    } catch (analysisError) {
+    } catch {
         // AI analysis must never prevent deterministic recovery.
         console.error(
-            `Groq failure analysis failed for action ${action.id}:`,
-            analysisError
+            `Groq failure analysis failed for action ${action.id}; using standard recovery policy.`
         );
 
         failureAnalysis = {
             failure_type: 'UNKNOWN',
             severity: 'UNKNOWN',
-            explanation: error.message,
+            explanation: safeErrorMessage,
             recommended_action: 'FOLLOW_STANDARD_RETRY_POLICY'
         };
     }
@@ -59,14 +59,14 @@ async function selfHeal(action, error) {
             action_id: action.id,
             actor: 'AGENT',
             event: 'RETRY',
-            reason: `Attempt ${newCount}: ${error.message}`,
+            reason: `Attempt ${newCount}: ${safeErrorMessage}`,
             meta: {
                 attempt: newCount,
                 failure_type: failureAnalysis.failure_type,
                 severity: failureAnalysis.severity,
                 explanation: failureAnalysis.explanation,
                 recommended_action: failureAnalysis.recommended_action,
-                original_error: error.message
+                original_error: safeErrorMessage
             }
         });
 

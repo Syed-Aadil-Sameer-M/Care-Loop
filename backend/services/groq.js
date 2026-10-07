@@ -282,27 +282,30 @@ async function detectAnomaly(planJSON, resultText) {
             {
                 role: 'system',
                 content: `
-You are a clinical anomaly detection assistant.
+You are a clinical plan anomaly detection assistant. Compare the ACTIVE CARE PLAN with the NEW CLINICAL RESULT.
 
-Compare the planned care action data with the reported result.
+Report an anomaly only when the result meaningfully contradicts the active plan, contains an unexpected finding supported by the result, or requires deviation from the current plan. A normal result that is expected under the plan is not an anomaly. Do not infer a contradiction from missing information or uncertainty; when the evidence is ambiguous or insufficient, set anomaly_detected to false and severity to NONE.
 
-Identify only meaningful inconsistencies or unexpected results.
+Do not invent a diagnosis, result, clinical fact, or contradiction. Do not recommend an action unrelated to the new result. When an anomaly is detected, suggest only a cautious, result-related next action for doctor review; the suggestion is not authorization to change or execute the care plan.
 
-Return JSON with exactly these fields:
+Return a JSON object with exactly these fields and types:
+{
+  "anomaly_detected": boolean,
+  "finding": string,
+  "reason": string,
+  "severity": "LOW" | "MEDIUM" | "HIGH" | "NONE",
+  "suggested_action": string,
+  "suggested_department": "Lab" | "Cardiology" | "Pharmacy" | "Clinic" | "Emergency"
+}
 
-- anomaly_detected: boolean
-- finding: string
-- reason: string
-- severity: LOW, MEDIUM, HIGH, or NONE
-- suggested_action: string
-- suggested_department: Lab, Cardiology, Pharmacy, Clinic, or Emergency
+When anomaly_detected is false, use an empty suggested_action and severity NONE. Never use a false result as a reason to create an action.
         `.trim()
             },
             {
                 role: 'user',
                 content: JSON.stringify({
-                    plan: planJSON,
-                    result: resultText
+                    active_care_plan: planJSON,
+                    new_clinical_result: resultText
                 })
             }
         ],
@@ -318,7 +321,82 @@ Return JSON with exactly these fields:
         throw new Error('Groq returned an empty anomaly response');
     }
 
-    return JSON.parse(content);
+    let parsed;
+
+    try {
+        parsed = JSON.parse(content);
+    } catch (error) {
+        throw new Error(
+            `Groq returned invalid anomaly JSON: ${error.message}`
+        );
+    }
+
+    return validateAnomalyResponse(parsed);
+}
+
+function validateAnomalyResponse(analysis) {
+    const requiredFields = [
+        'anomaly_detected',
+        'finding',
+        'reason',
+        'severity',
+        'suggested_action',
+        'suggested_department'
+    ];
+    const validSeverities = ['LOW', 'MEDIUM', 'HIGH', 'NONE'];
+
+    if (!analysis || typeof analysis !== 'object' || Array.isArray(analysis)) {
+        throw new Error('Groq returned an invalid anomaly response object');
+    }
+
+    const unexpectedFields = Object.keys(analysis).filter(
+        (field) => !requiredFields.includes(field)
+    );
+    const missingFields = requiredFields.filter(
+        (field) => !Object.prototype.hasOwnProperty.call(analysis, field)
+    );
+
+    if (missingFields.length || unexpectedFields.length) {
+        throw new Error(
+            `Groq anomaly response must contain exactly the required fields; ` +
+            `missing: ${missingFields.join(', ') || 'none'}; ` +
+            `unexpected: ${unexpectedFields.join(', ') || 'none'}`
+        );
+    }
+
+    if (typeof analysis.anomaly_detected !== 'boolean') {
+        throw new Error('Groq anomaly response anomaly_detected must be a boolean');
+    }
+
+    if (typeof analysis.finding !== 'string') {
+        throw new Error('Groq anomaly response finding must be a string');
+    }
+
+    if (typeof analysis.reason !== 'string') {
+        throw new Error('Groq anomaly response reason must be a string');
+    }
+
+    if (!validSeverities.includes(analysis.severity)) {
+        throw new Error(`Invalid anomaly severity: ${analysis.severity}`);
+    }
+
+    if (typeof analysis.suggested_action !== 'string') {
+        throw new Error('Groq anomaly response suggested_action must be a string');
+    }
+
+    if (!VALID_DEPARTMENTS.includes(analysis.suggested_department)) {
+        throw new Error(
+            `Invalid anomaly department: ${analysis.suggested_department}`
+        );
+    }
+
+    if (analysis.anomaly_detected && !analysis.suggested_action.trim()) {
+        throw new Error(
+            'Groq anomaly response is missing suggested_action'
+        );
+    }
+
+    return analysis;
 }
 
 /**
@@ -479,73 +557,241 @@ Rules:
     };
 }
 
-/*
- * ============================================================
- * SUMANTH — TODO: IMPLEMENT AI FAILURE ANALYSIS
- * ============================================================
- *
- * Add a new function:
- *
- *     async function analyzeFailure(action, error)
- *
- * This function will be called by services/selfHeal.js whenever
- * an action execution fails.
- *
- * IMPORTANT:
- * Groq is ONLY responsible for ANALYZING and EXPLAINING the
- * failure. It must NOT control the retry/escalation logic.
- *
- * selfHeal.js remains responsible for:
- *   - retry count
- *   - retry delay/backoff
- *   - maximum retries
- *   - escalation
- *
- * analyzeFailure() should use the Groq model:
- *
- *     openai/gpt-oss-120b
- *
- * It should analyze:
- *   - the action that failed
- *   - the original error message
- *   - action type
- *   - department
- *   - description
- *
- * Return a structured JSON object like:
- *
- * {
- *   failure_type: "TRANSIENT_SERVICE_ERROR",
- *   severity: "MEDIUM",
- *   explanation: "The external service returned a temporary
- *                 server-unavailable error.",
- *   recommended_action: "RETRY"
- * }
- *
- * Suggested failure_type values:
- *   - TRANSIENT_SERVICE_ERROR
- *   - RATE_LIMIT
- *   - INVALID_DATA
- *   - DEPENDENCY_FAILURE
- *   - AUTHENTICATION_ERROR
- *   - UNKNOWN
- *
- * Suggested severity values:
- *   - LOW
- *   - MEDIUM
- *   - HIGH
- *   - UNKNOWN
- *
- * The function should use structured JSON output rather than
- * asking Groq for free-form text.
- *
- * IMPORTANT:
- * If Groq itself fails, selfHeal.js already has a fallback
- * mechanism. Therefore analyzeFailure() should throw the error
- * normally; selfHeal.js will handle the fallback.
- *
- * ============================================================
- */
+const FAILURE_TYPE_VALUES = [
+    'TRANSIENT_SERVICE_ERROR',
+    'RATE_LIMIT',
+    'INVALID_DATA',
+    'DEPENDENCY_FAILURE',
+    'AUTHENTICATION_ERROR',
+    'UNKNOWN'
+];
+
+const FAILURE_SEVERITY_VALUES = [
+    'LOW',
+    'MEDIUM',
+    'HIGH',
+    'UNKNOWN'
+];
+
+const FAILURE_ANALYSIS_REQUIRED_FIELDS = [
+    'failure_type',
+    'severity',
+    'explanation',
+    'recommended_action'
+];
+
+function sanitizeErrorMessage(message) {
+    const fallback = 'Execution failed (error details unavailable).';
+
+    try {
+        const source =
+            typeof message === 'string'
+                ? message
+                : message && typeof message.message === 'string'
+                    ? message.message
+                    : String(message);
+
+        if (!source.trim()) {
+            return fallback;
+        }
+
+        return source
+            .replace(
+                /-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----/gi,
+                '[REDACTED_PRIVATE_KEY]'
+            )
+            .replace(/\b(?:set-cookie|cookie)\s*:\s*[^\r\n]*/gi, '[REDACTED_COOKIE]')
+            .replace(
+                /\b(?:proxy-authorization|authorization)\s*[:=]\s*[^\r\n,;]+/gi,
+                '[REDACTED_AUTHORIZATION]'
+            )
+            .replace(/\b(?:bearer|basic)\s+[A-Za-z0-9._~+/=-]+/gi, '[REDACTED_AUTH_TOKEN]')
+            .replace(
+                /\b[a-z][a-z0-9+.-]*:\/\/[^/\s:@]+:[^@\s/]+@[^ \s"'<>]+/gi,
+                '[REDACTED_CONNECTION_STRING]'
+            )
+            .replace(
+                /\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|amqp|mssql):\/\/[^\s"'<>]+/gi,
+                '[REDACTED_CONNECTION_STRING]'
+            )
+            .replace(
+                /\b(?:sk-[A-Za-z0-9_-]{16,}|gsk_[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[A-Z0-9]{16}|AIza[0-9A-Za-z_-]{35})\b/g,
+                '[REDACTED_API_KEY]'
+            )
+            .replace(
+                /(["']?\b[A-Za-z0-9_-]*(?:api[_-]?key|access[_-]?token|refresh[_-]?token|auth(?:orization)?[_-]?(?:token)?|client[_-]?secret|secret[_-]?key|password|passwd|pwd|token|secret|cookie)[A-Za-z0-9_-]*["']?\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^,\s;}]+)/gi,
+                '$1[REDACTED]'
+            )
+            .replace(
+                /\b[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,
+                '[REDACTED_JWT]'
+            )
+            .slice(0, 2000);
+    } catch {
+        return fallback;
+    }
+}
+
+function validateFailureAnalysisResponse(result) {
+    if (!result || typeof result !== 'object' || Array.isArray(result)) {
+        throw new Error('Groq returned an invalid failure-analysis response object');
+    }
+
+    const unexpectedFields = Object.keys(result).filter(
+        (field) => !FAILURE_ANALYSIS_REQUIRED_FIELDS.includes(field)
+    );
+    const missingFields = FAILURE_ANALYSIS_REQUIRED_FIELDS.filter(
+        (field) => !Object.prototype.hasOwnProperty.call(result, field)
+    );
+
+    if (missingFields.length || unexpectedFields.length) {
+        throw new Error(
+            `Groq failure-analysis response must contain exactly the required fields; ` +
+            `missing: ${missingFields.join(', ') || 'none'}; ` +
+            `unexpected: ${unexpectedFields.join(', ') || 'none'}`
+        );
+    }
+
+    if (!FAILURE_TYPE_VALUES.includes(result.failure_type)) {
+        throw new Error(`Invalid failure type: ${result.failure_type}`);
+    }
+
+    if (!FAILURE_SEVERITY_VALUES.includes(result.severity)) {
+        throw new Error(`Invalid failure severity: ${result.severity}`);
+    }
+
+    if (typeof result.explanation !== 'string' || !result.explanation.trim()) {
+        throw new Error('Failure explanation must be a non-empty string');
+    }
+
+    if (
+        typeof result.recommended_action !== 'string' ||
+        !result.recommended_action.trim()
+    ) {
+        throw new Error('Failure recommended_action must be a non-empty string');
+    }
+
+    return {
+        failure_type: result.failure_type,
+        severity: result.severity,
+        explanation: result.explanation.trim(),
+        recommended_action: result.recommended_action.trim()
+    };
+}
+
+async function analyzeFailure(action, error) {
+    if (!action || typeof action !== 'object' || Array.isArray(action)) {
+        throw new Error('Action is required for failure analysis');
+    }
+
+    const actionType = typeof action.type === 'string' ? action.type.trim() : '';
+    const department = typeof action.department === 'string' ? action.department.trim() : '';
+    const description = typeof action.description === 'string' ? action.description.trim() : '';
+
+    if (!actionType) {
+        throw new Error('Action type is required for failure analysis');
+    }
+
+    if (!department) {
+        throw new Error('Action department is required for failure analysis');
+    }
+
+    if (!description) {
+        throw new Error('Action description is required for failure analysis');
+    }
+
+    const safeActionType = sanitizeErrorMessage(actionType);
+    const safeDepartment = sanitizeErrorMessage(department);
+    const safeDescription = sanitizeErrorMessage(description);
+
+    if (!error) {
+        throw new Error('Original error is required for failure analysis');
+    }
+
+    const sanitizedErrorMessage = sanitizeErrorMessage(error);
+
+    const response = await getGroqClient().chat.completions.create({
+        model: 'openai/gpt-oss-120b',
+        temperature: 0,
+        messages: [
+            {
+                role: 'system',
+                content: `
+You are a failure-analysis assistant for CareLoop operations.
+
+Assess the failed care action execution and explain the likely root cause
+without deciding the execution policy. The Groq model must only analyze and
+classify the failure. It must not choose retry counts, delays, or escalation.
+
+Use the following inputs:
+- action type
+- action department
+- action description
+- original error message
+
+Return ONLY valid JSON with exactly these fields:
+{
+  "failure_type": "TRANSIENT_SERVICE_ERROR",
+  "severity": "MEDIUM",
+  "explanation": "Short explanation of the failure reason.",
+  "recommended_action": "RETRY"
+}
+
+Allowed failure_type values:
+- TRANSIENT_SERVICE_ERROR
+- RATE_LIMIT
+- INVALID_DATA
+- DEPENDENCY_FAILURE
+- AUTHENTICATION_ERROR
+- UNKNOWN
+
+Allowed severity values:
+- LOW
+- MEDIUM
+- HIGH
+- UNKNOWN
+
+Rules:
+- Do not expose secrets or authorization details.
+- Do not invent facts not implied by the error.
+- Keep the explanation concise and factual.
+- recommended_action should be a short operational recommendation only.
+- Do not decide retry timing, max retries, or escalation policy.
+                `.trim()
+            },
+            {
+                role: 'user',
+                content: JSON.stringify({
+                    action_type: safeActionType,
+                    department: safeDepartment,
+                    description: safeDescription,
+                    original_error: sanitizedErrorMessage
+                })
+            }
+        ],
+        response_format: {
+            type: 'json_object'
+        }
+    });
+
+    const content = response.choices?.[0]?.message?.content?.trim();
+
+    if (!content) {
+        throw new Error('Groq returned an empty failure-analysis response');
+    }
+
+    let parsed;
+
+    try {
+        parsed = JSON.parse(content);
+    } catch (analysisError) {
+        throw new Error(
+            `Groq returned invalid failure-analysis JSON: ${analysisError.message}`
+        );
+    }
+
+    return validateFailureAnalysisResponse(parsed);
+}
 
 module.exports = {
     get groq() {
@@ -553,5 +799,7 @@ module.exports = {
     },
     extractCareActions,
     detectAnomaly,
-    classifyPatientIntent
+    classifyPatientIntent,
+    analyzeFailure,
+    sanitizeErrorMessage
 };
