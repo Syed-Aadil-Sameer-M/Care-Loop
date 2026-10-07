@@ -460,3 +460,162 @@
  * END OF FEATURE 5 INSTRUCTIONS
  * ============================================================
  */
+
+// backend/routes/patientChat.js
+const express = require('express');
+const router = express.Router();
+const supabase = require('../superbase');
+const { transition } = require('../services/stateMachine');
+const { classifyPatientIntent } = require('../services/groq');
+
+/**
+ * Validates whether a given string is a valid UUID
+ */
+function isValidUUID(uuid) {
+
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
+}
+
+/**
+ * Feature 5: Natural Language Patient Chat Endpoint
+ * POST /api/patient-chat
+ * Body: { actionId: "UUID", message: "Patient reply text" }
+ */
+
+/**
+ * GET /api/patient-chat
+ * Browser check route
+ */
+router.get('/', (req, res) => {
+  res.json({
+    status: 'active',
+    message: 'Patient chat service is running. Submit a POST request with { actionId, message } to send a message.'
+  });
+});
+
+router.post('/', async (req, res) => {
+  try {
+    const { actionId, message } = req.body;
+
+    // 1. Input Validation
+    if (!actionId || !isValidUUID(actionId)) {
+      return res.status(400).json({
+        success: false,
+        data: { message: 'A valid actionId UUID is required.' }
+      });
+    }
+
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      return res.status(400).json({
+        success: false,
+        data: { message: 'A non-empty patient message string is required.' }
+      });
+    }
+
+    // 2. Retrieve care action from Supabase
+    const { data: action, error: fetchError } = await supabase
+      .from('care_actions')
+      .select('*')
+      .eq('id', actionId)
+      .single();
+
+    if (fetchError || !action) {
+      return res.status(404).json({
+        success: false,
+        data: { actionId, message: `Care action ${actionId} not found.` }
+      });
+    }
+
+    // 3. Classify Patient Intent using groq.js
+    const classification = await classifyPatientIntent(message.trim());
+    const { intent, confidence, reason } = classification;
+
+    console.log(`[PatientChat] Message: "${message}" | Classified Intent: ${intent} (${confidence})`);
+
+    const previousState = action.state;
+    let targetState = null;
+    let responseText = '';
+
+    // 4. Determine Target Transition according to Intent Rules
+    if (intent === 'CONFIRM') {
+      targetState = 'COMPLETED';
+      responseText = 'Your care action has been marked as completed.';
+    } else if (intent === 'URGENT') {
+      targetState = 'ESCALATED';
+      responseText = 'Your message has been flagged as URGENT. A doctor or care coordinator is reviewing your record immediately.';
+    } else if (intent === 'RESCHEDULE') {
+      targetState = 'ESCALATED';
+      responseText = 'We have notified your care coordinator about your rescheduling request.';
+    } else if (intent === 'QUESTION') {
+      return res.json({
+        success: true,
+        data: {
+          actionId,
+          previousState,
+          intent,
+          confidence,
+          newState: previousState,
+          message: 'Your question has been routed to your care team. They will reply shortly.'
+        }
+      });
+    } else if (intent === 'DENY' || intent === 'OTHER') {
+      return res.json({
+        success: true,
+        data: {
+          actionId,
+          previousState,
+          intent,
+          confidence,
+          newState: previousState,
+          message: 'Thank you for your response. Your care coordinator will review your message.'
+        }
+      });
+    }
+
+    // 5. Authoritative State Transition via stateMachine.js
+    if (targetState) {
+      const updatedAction = await transition(
+        actionId,
+        targetState,
+        'Patient',
+        `Patient Chat [${intent}]: ${reason || message}`,
+        { raw_message: message, intent, confidence }
+      );
+
+      // If state transition is forbidden from current state
+      if (!updatedAction) {
+        return res.json({
+          success: false,
+          data: {
+            actionId,
+            currentState: previousState,
+            intent,
+            message: `This action cannot be marked ${targetState.toLowerCase()} from its current state (${previousState}).`
+          }
+        });
+      }
+
+      // Successful Transition
+      return res.json({
+        success: true,
+        data: {
+          actionId,
+          previousState,
+          intent,
+          confidence,
+          newState: targetState,
+          message: responseText
+        }
+      });
+    }
+
+  } catch (err) {
+    console.error('[PatientChat Error]', err.message);
+    return res.status(500).json({
+      success: false,
+      data: { message: 'An unexpected error occurred while processing your message.' }
+    });
+  }
+});
+
+module.exports = router;
