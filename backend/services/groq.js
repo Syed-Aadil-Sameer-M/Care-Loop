@@ -443,77 +443,76 @@ Rules:
     };
 }
 
-/*
- * ============================================================
- * SUMANTH — TODO: IMPLEMENT AI FAILURE ANALYSIS
- * ============================================================
- *
- * Add a new function:
- *
- *     async function analyzeFailure(action, error)
- *
- * This function will be called by services/selfHeal.js whenever
- * an action execution fails.
- *
- * IMPORTANT:
- * Groq is ONLY responsible for ANALYZING and EXPLAINING the
- * failure. It must NOT control the retry/escalation logic.
- *
- * selfHeal.js remains responsible for:
- *   - retry count
- *   - retry delay/backoff
- *   - maximum retries
- *   - escalation
- *
- * analyzeFailure() should use the Groq model:
- *
- *     openai/gpt-oss-120b
- *
- * It should analyze:
- *   - the action that failed
- *   - the original error message
- *   - action type
- *   - department
- *   - description
- *
- * Return a structured JSON object like:
- *
- * {
- *   failure_type: "TRANSIENT_SERVICE_ERROR",
- *   severity: "MEDIUM",
- *   explanation: "The external service returned a temporary
- *                 server-unavailable error.",
- *   recommended_action: "RETRY"
- * }
- *
- * Suggested failure_type values:
- *   - TRANSIENT_SERVICE_ERROR
- *   - RATE_LIMIT
- *   - INVALID_DATA
- *   - DEPENDENCY_FAILURE
- *   - AUTHENTICATION_ERROR
- *   - UNKNOWN
- *
- * Suggested severity values:
- *   - LOW
- *   - MEDIUM
- *   - HIGH
- *   - UNKNOWN
- *
- * The function should use structured JSON output rather than
- * asking Groq for free-form text.
- *
- * IMPORTANT:
- * If Groq itself fails, selfHeal.js already has a fallback
- * mechanism. Therefore analyzeFailure() should throw the error
- * normally; selfHeal.js will handle the fallback.
- *
- * ============================================================
- */
+async function analyzeFailure(action, error) {
+    if (!process.env.GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY is missing. Set it in your .env file.');
+    }
+
+    const response = await groq.chat.completions.create({
+        model: 'openai/gpt-oss-120b',
+        temperature: 0,
+        messages: [
+            {
+                role: 'system',
+                content: `
+You are an AI failure analysis assistant for a clinical care execution system.
+
+Your task is to analyze an action execution failure and return a structured JSON analysis.
+You only analyze and explain the failure; you do not control retry or escalation logic.
+
+Analyze the provided action and error details and return exactly ONE JSON object with these fields:
+- failure_type (one of: TRANSIENT_SERVICE_ERROR, RATE_LIMIT, INVALID_DATA, DEPENDENCY_FAILURE, AUTHENTICATION_ERROR, UNKNOWN)
+- severity (one of: LOW, MEDIUM, HIGH, UNKNOWN)
+- explanation (a short human-readable string explaining why the error occurred)
+- recommended_action (a short string suggesting the next step, e.g., "RETRY" or "ESCALATE")
+
+Return only the requested structured JSON data without markdown.
+        `.trim()
+            },
+            {
+                role: 'user',
+                content: JSON.stringify({
+                    action: {
+                        type: action.type,
+                        department: action.department,
+                        description: action.description
+                    },
+                    error_message: error?.message || error
+                })
+            }
+        ],
+        response_format: {
+            type: 'json_object'
+        },
+        max_tokens: 200
+    });
+
+    const content = response.choices?.[0]?.message?.content?.trim();
+
+    if (!content) {
+        throw new Error('Groq returned an empty failure analysis response');
+    }
+
+    let result;
+    try {
+        result = JSON.parse(content);
+    } catch (parseError) {
+        console.error('Invalid failure analysis response:', content);
+        throw new Error(`Groq returned invalid failure analysis JSON: ${parseError.message}`);
+    }
+
+    return {
+        failure_type: result.failure_type || 'UNKNOWN',
+        severity: result.severity || 'UNKNOWN',
+        explanation: result.explanation || 'An unknown error occurred.',
+        recommended_action: result.recommended_action || 'RETRY'
+    };
+}
 
 module.exports = {
     groq,
     extractCareActions,
     detectAnomaly,
-    classifyPatientIntent
+    classifyPatientIntent,
+    analyzeFailure
 };

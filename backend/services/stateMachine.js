@@ -192,7 +192,10 @@ async function transition(
         .update({
             state: newState,
             updated_at: new Date().toISOString(),
-            ...meta
+            meta: {
+                ...(action.meta || {}),
+                ...meta
+            }
         })
         .eq('id', actionId)
         .select()
